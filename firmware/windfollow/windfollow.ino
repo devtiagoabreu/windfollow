@@ -29,15 +29,6 @@ MotionEngine    motionEngine;
 MotionDetector  motionDetector;
 DashboardService dashboardService;
 
-enum class SystemState {
-    Boot,
-    Init,
-    Ready,
-    Error
-};
-
-SystemState g_systemState = SystemState::Boot;
-
 // ============================================================
 // Declarações
 // ============================================================
@@ -67,11 +58,6 @@ void loopDashboard();
 void setup() {
     Serial.begin(115200);
     delay(100);
-
-    // Desativa WDT do timer group 1 (pode disparar durante init da câmera)
-    TIMERG1.wdtwprotect.val = TIMG_WDT_WKEY_V;
-    TIMERG1.wdtconfig0.val = 0;
-    TIMERG1.wdtwprotect.val = 0;
 
     Serial.println();
     Serial.println(F("WindFollow v1.0.0"));

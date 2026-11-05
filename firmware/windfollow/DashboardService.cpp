@@ -1,4 +1,7 @@
 #include "DashboardService.h"
+#include "HardwareConfig.h"
+#include "ConfigManager.h"
+#include "L298NDriver.h"
 #include <WebServer.h>
 #include <WiFi.h>
 #include <ESPmDNS.h>
@@ -7,8 +10,11 @@
 DashboardService dashboardService;
 
 static DashboardService* s_instance = nullptr;
-
 static WebServer* s_webServer = nullptr;
+
+// Declarações externas das instâncias globais definidas em windfollow.ino
+extern ConfigManager configManager;
+extern L298NDriver l298nDriver;
 
 DashboardService::DashboardService()
     : m_running(false) {}
@@ -100,12 +106,12 @@ void DashboardService::registerRoutes() {
     });
 }
 
-void sendText(WebServer* server, int code, const char* type, const char* body) {
+static void sendText(WebServer* server, int code, const char* type, const char* body) {
     if (!server) return;
     server->send(code, type, body);
 }
 
-void sendJson(WebServer* server, int code, const char* json) {
+static void sendJson(WebServer* server, int code, const char* json) {
     if (!server) return;
     server->send(code, "application/json", json);
 }
@@ -115,9 +121,6 @@ void sendJson(WebServer* server, int code, const char* json) {
 // ============================================================
 
 void DashboardService::handleRoot() {
-    // Lê o arquivo index.html do simulador e serve com caminhos ajustados
-    // No ESP32 real, o HTML/CSS/JS são embutidos em PROGMEM ou servidos de LittleFS
-    // Aqui servimos uma página simples que aponta para os endpoints da API
     const char* html = R"rawliteral(
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -205,12 +208,10 @@ loadStatus();
 }
 
 void DashboardService::handleCss() {
-    // CSS vazio — o HTML embutido já tem estilo inline
     sendText(s_webServer, 200, "text/css", "");
 }
 
 void DashboardService::handleJs() {
-    // JS embutido no HTML
     sendText(s_webServer, 200, "application/javascript", "");
 }
 
@@ -300,13 +301,10 @@ void DashboardService::handleConfigGet() {
 }
 
 void DashboardService::handleConfigPost() {
-    // Parse simples do JSON body
     String body = s_webServer->arg("plain");
     HardwareConfig cfg = configManager.getConfig();
 
-    // Extrai valores básicos (formato esperado pelo simulador)
     if (body.indexOf("gpio_in1") >= 0) {
-        // parsing simplificado — em produção usar ArduinoJson
         cfg.gpio_in1 = -1;
         cfg.gpio_in2 = -1;
         cfg.gpio_ena = -1;
