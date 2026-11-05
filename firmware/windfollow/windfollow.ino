@@ -82,8 +82,6 @@ void setup() {
     // 3. Rede Wi-Fi (AP ou STA)
     setupNetwork();
     delay(100);
-
-    // 4. Câmera (OV2640 / OV5640)
     setupCamera();
     delay(100);
 
@@ -127,7 +125,13 @@ void setupConfig()   {
     configManager.begin();
 }
 void setupCore()     { /* estado do sistema */ }
-void setupNetwork()  { /* inicializa rede Wi-Fi */ }
+void setupNetwork() {
+    // Inicia como Access Point para configuracao inicial
+    WiFi.mode(WIFI_AP);
+    WiFi.softAP("WindFollow-Setup", "windfollow123");
+    Serial.print(F("AP IP: "));
+    Serial.println(WiFi.softAPIP());
+}
 void setupCamera()   {
     // TODO: inicializar câmera OV2640/OV5640
 }
