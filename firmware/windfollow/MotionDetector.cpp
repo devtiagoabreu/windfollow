@@ -1,7 +1,5 @@
 #include "MotionDetector.h"
 
-MotionDetector motionDetector;
-
 bool MotionDetector::begin(int width, int height) {
     _prevWidth = width;
     _prevHeight = height;

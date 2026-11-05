@@ -1,7 +1,5 @@
 #include "MotionEngine.h"
 
-MotionEngine motionEngine;
-
 bool MotionEngine::begin() {
     _isMoving = false;
     return true;

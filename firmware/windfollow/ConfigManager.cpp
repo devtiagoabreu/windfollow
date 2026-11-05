@@ -1,7 +1,5 @@
 #include "ConfigManager.h"
 
-ConfigManager configManager;
-
 bool ConfigManager::begin() {
     if (!prefs.begin(namespaceName, false)) {
         return false;

@@ -1,7 +1,5 @@
 #include "L298NDriver.h"
 
-L298NDriver l298nDriver;
-
 bool L298NDriver::begin(const HardwareConfig& config) {
     _config = config;
     if (_config.gpio_in1 < 0 || _config.gpio_in2 < 0 || _config.gpio_ena < 0) {

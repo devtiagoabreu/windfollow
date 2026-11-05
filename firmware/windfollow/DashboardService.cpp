@@ -7,8 +7,6 @@
 #include <ESPmDNS.h>
 #include <Preferences.h>
 
-DashboardService dashboardService;
-
 static DashboardService* s_instance = nullptr;
 static WebServer* s_webServer = nullptr;
 
