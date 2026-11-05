@@ -29,6 +29,13 @@ MotionEngine    motionEngine;
 MotionDetector  motionDetector;
 DashboardService dashboardService;
 
+enum class SystemState {
+    Boot,
+    Init,
+    Ready,
+    Error
+};
+
 SystemState g_systemState = SystemState::Boot;
 
 // ============================================================
@@ -76,56 +83,45 @@ void setup() {
 
     g_systemState = SystemState::Init;
 
-    // 1. Logger
-    setupLogger();
-    delay(100);
-
-    // 2. Storage (Preferences/NVS)
-    setupStorage();
-    delay(100);
-
-    // 3. Config (carrega pinos GPIO, tensão, zona morta, etc.)
+    // 1. Config (carrega pinos GPIO, tensão, zona morta, etc.)
     setupConfig();
     delay(100);
 
-    // 4. Core (estado do sistema)
+    // 2. Core (estado do sistema)
     setupCore();
     delay(100);
 
-    // 5. Rede Wi-Fi (AP ou STA)
+    // 3. Rede Wi-Fi (AP ou STA)
     setupNetwork();
     delay(100);
 
-    // 6. Câmera (OV2640 / OV5640)
+    // 4. Câmera (OV2640 / OV5640)
     setupCamera();
     delay(100);
 
-    // 7. Motor L298N (usa pinos do ConfigManager)
+    // 5. Motor L298N (usa pinos do ConfigManager)
     setupMotion();
     delay(100);
 
-    // 8. Rastreamento por movimento
+    // 6. Rastreamento por movimento
     setupTracking();
     delay(100);
 
-    // 9. Dashboard Web (serve HTML/CSS/JS + rotas REST)
+    // 7. Dashboard Web (serve HTML/CSS/JS + rotas REST)
     setupDashboard();
     delay(100);
 
-    // Conecta Wi-Fi ou entra em modo AP
-    networkService.connectOrFallback();
+    // Conecta Wi-Fi ou entra em modo AP (dashboard já inicia o servidor web)
+    Serial.println(F("Wi-Fi/dashboards iniciados"));
 
     g_systemState = SystemState::Ready;
-    loggerService.info("System", "WindFollow ready — all systems initialized");
+    Serial.println(F("WindFollow ready — all systems initialized"));
 }
 
 // ============================================================
 // loop()
 // ============================================================
 void loop() {
-    loopLogger();
-    loopStorage();
-    loopConfig();
     loopCore();
     loopNetwork();
     loopCamera();
@@ -143,7 +139,7 @@ void setupConfig()   {
     configManager.begin();
 }
 void setupCore()     { /* estado do sistema */ }
-void setupNetwork()  { networkService.init(); }
+void setupNetwork()  { /* inicializa rede Wi-Fi */ }
 void setupCamera()   {
     // TODO: inicializar câmera OV2640/OV5640
 }
@@ -172,10 +168,10 @@ void loopLogger()   { /* stub */ }
 void loopStorage()  { /* stub */ }
 void loopConfig()   { /* stub */ }
 void loopCore()     { delay(5); }
-void loopNetwork()  { networkService.tick(); }
+void loopNetwork()  { dashboardService.tick(); }
 void loopCamera()   { /* stub */ }
 void loopMotion()   { motionEngine.update(); }
 void loopTracking() {
     // TODO: loop de detecção de movimento + acionamento do motor
 }
-void loopDashboard() { dashboardService.tick(); }
+void loopDashboard() { /* dashboard tick já é chamado em loopNetwork */ }

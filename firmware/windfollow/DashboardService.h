@@ -2,7 +2,7 @@
 #define DASHBOARD_SERVICE_H
 
 #include <Arduino.h>
-#include "../../sdk/interfaces/SmartCamService.h"
+#include "SmartCamService.h"
 
 class DashboardService : public SmartCamService {
 public:
