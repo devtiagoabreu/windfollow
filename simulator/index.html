@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WindFollow - Simulador ESP32</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="simulator-badge">SIMULADOR - usa camera do dispositivo (webcam)</div>
+    <div id="app">
+        <header>
+            <h1>WindFollow</h1>
+            <div class="header-actions">
+                <label class="theme-switch">
+                    <input type="checkbox" id="theme-toggle" onchange="sim.toggleTheme()">
+                    <span class="theme-slider"></span>
+                </label>
+                <div id="connection-status" class="status-indicator status-ok">Simulador ativo</div>
+            </div>
+        </header>
+
+        <!-- Abas principais -->
+        <nav class="tabs" id="main-tabs">
+            <button class="tab active" data-tab="dashboard" onclick="sim.switchTab('dashboard', this)">
+                <span class="tab-icon">📺</span> Painel de Controle
+            </button>
+            <button class="tab" data-tab="devices" onclick="sim.switchTab('devices', this)">
+                <span class="tab-icon">⚙️</span> Configuração de Dispositivos
+            </button>
+            <button class="tab" data-tab="wifi" onclick="sim.switchTab('wifi', this)">
+                <span class="tab-icon">📶</span> Configuração Wi-Fi
+            </button>
+        </nav>
+
+        <main id="content">
+            <!-- Aba: Painel de Controle -->
+            <section id="tab-dashboard" class="tab-panel active">
+                <div class="card">
+                    <h2>Camera</h2>
+                    <div class="video-placeholder">
+                        <video id="cam-video" autoplay muted playsinline></video>
+                        <canvas id="cam-canvas" style="display:none;"></canvas>
+                        <div class="video-overlay">
+                            <div class="crosshair"></div>
+                            <div class="motion-box" id="motion-box" style="display:none;"></div>
+                            <div class="target-dot" id="target-dot"></div>
+                        </div>
+                        <div class="video-controls">
+                            <button class="btn btn-primary btn-small" id="btn-camera" onclick="sim.toggleCamera()">Ativar camera</button>
+                            <span class="camera-status" id="camera-status">Camera desativada</span>
+                        </div>
+                    </div>
+                    <div class="status-grid">
+                        <div class="status-item">
+                            <span class="label">Wi-Fi</span>
+                            <span class="value" id="status-wifi">Modo AP</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="label">Modo</span>
+                            <span class="value" id="status-mode">Idle</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="label">Motor</span>
+                            <span class="value" id="status-motor">Parado</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="label">Rastreamento</span>
+                            <span class="value" id="status-tracking">Desligado</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="label">Movimento</span>
+                            <span class="value" id="status-motion">Não</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="label">Coordenadas</span>
+                            <span class="value" id="status-coords">—</span>
+                        </div>
+                    </div>
+
+                    <!-- Indicador visual de direção -->
+                    <div class="direction-card">
+                        <h3>Direção do Rastreamento</h3>
+                        <div class="direction-visual">
+                            <div class="direction-center"></div>
+                            <div class="direction-arrow" id="direction-arrow"></div>
+                            <div class="direction-labels">
+                                <span class="dir-label dir-left">Esquerda</span>
+                                <span class="dir-label dir-center">Centro</span>
+                                <span class="dir-label dir-right">Direita</span>
+                            </div>
+                        </div>
+                        <div class="direction-zone">
+                            <div class="zone-bar" id="zone-bar"></div>
+                        </div>
+                        <div class="direction-info">
+                            <span class="info-label">Posição X:</span>
+                            <span class="info-value" id="info-pos-x">—</span>
+                            <span class="info-label">Erro:</span>
+                            <span class="info-value" id="info-error">—</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card controls-card">
+                    <h2>Controles Manuais</h2>
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="sim.moveLeft()">Esquerda</button>
+                        <button class="btn btn-danger" onclick="sim.stop()">Parar</button>
+                        <button class="btn btn-primary" onclick="sim.moveRight()">Direita</button>
+                        <button class="btn btn-outline" onclick="sim.centerTarget()">Centro</button>
+                    </div>
+                    <div class="control-row">
+                        <label class="toggle">
+                            <input type="checkbox" id="toggle-tracking" onchange="sim.toggleTracking(this.checked)">
+                            <span class="toggle-slider"></span>
+                            <span class="toggle-label nowrap">Rastreamento automático</span>
+                        </label>
+                        <span class="control-status" id="tracking-status">Desligado</span>
+                    </div>
+                    <div class="camera-hint">
+                        <p>📷 Mova um objeto na frente da câmera para testar o rastreamento por movimento.</p>
+                        <p class="hint-detail">Caixa verde aparece quando movimento é detectado. Coordenadas e direção são mostradas no painel.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Aba: Configuração de Dispositivos -->
+            <section id="tab-devices" class="tab-panel">
+                <div class="card">
+                    <h2>Configuracao de Hardware (L298N)</h2>
+                    <p class="hint">Esses valores sao enviados para o ESP32 e salvos na memoria (NVS/Preferences).</p>
+                    <form id="form-settings">
+                        <div class="form-group">
+                            <label>GPIO IN1 (L298N) — sentido 1</label>
+                            <input type="number" id="gpio_in1" min="0" max="48" value="21" placeholder="Ex: 21">
+                            <span class="helper">Sinal da ESP32 ao L298N que define o sentido de rotação. IN1=HIGH + IN2=LOW gira em um sentido.</span>
+                        </div>
+                        <div class="form-group">
+                            <label>GPIO IN2 (L298N) — sentido 2</label>
+                            <input type="number" id="gpio_in2" min="0" max="48" value="22" placeholder="Ex: 22">
+                            <span class="helper">Trabalha com o IN1 para inverter o sentido. IN1=LOW + IN2=HIGH gira no sentido contrário. Ambos LOW = motor parado.</span>
+                        </div>
+                        <div class="form-group">
+                            <label>GPIO ENA (L298N) — velocidade (PWM)</label>
+                            <input type="number" id="gpio_ena" min="0" max="48" value="23" placeholder="Ex: 23">
+                            <span class="helper">Controla a velocidade via PWM (0% desligado, 100% máximo). Jumper ENA do módulo deve ser removido para a ESP32 controlar por PWM.</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Tensão do motor (V)</label>
+                            <input type="number" id="motor_voltage" min="0" step="0.1" value="12.0" placeholder="Ex: 12">
+                            <span class="helper">Apenas para exibição e registro. Não é medida pela ESP32.</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Zona morta (pixels)</label>
+                            <input type="number" id="dead_zone" min="0" max="200" value="30">
+                            <span class="helper">Tolerância central antes de corrigir. Evita que o motor fique corrigindo continuamente por pequenas oscilações.</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Sensibilidade</label>
+                            <input type="number" id="sensitivity" min="1" max="1000" value="30">
+                            <span class="helper">Limiar de diferença de quadros. Menor = mais sensível a movimentos pequenos.</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Área mínima (pixels)</label>
+                            <input type="number" id="min_area" min="1" max="5000" value="100">
+                            <span class="helper">Ignora regiões muito pequenas (ruído do sensor).</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Duração do pulso (ms)</label>
+                            <input type="number" id="step_duration_ms" min="50" max="2000" value="150">
+                            <span class="helper">Tempo de acionamento do motor a cada correção.</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Estabilização (ms)</label>
+                            <input type="number" id="stabilization_ms" min="0" max="5000" value="300">
+                            <span class="helper">Tempo de espera após o motor parar, antes de capturar o próximo quadro.</span>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-primary" id="btn-save">Salvar configuração</button>
+                            <button type="button" class="btn btn-outline" onclick="sim.validate()">Validar pinos</button>
+                            <button type="button" class="btn btn-outline" onclick="sim.reset()">Reset defaults</button>
+                        </div>
+                        <div id="msg-result" class="msg-result"></div>
+                    </form>
+                    <div class="info-card motor-info">
+                        <h2>Ligação L298N ↔ ESP32</h2>
+                        <div class="motor-table">
+                            <div class="motor-row">
+                                <span class="col">L298N</span>
+                                <span class="col">ESP32</span>
+                                <span class="col">Função</span>
+                            </div>
+                            <div class="motor-row">
+                                <span class="col">IN1</span>
+                                <span class="col">GPIO configurado (saída)</span>
+                                <span class="col">Define sentido de rotação 1</span>
+                            </div>
+                            <div class="motor-row">
+                                <span class="col">IN2</span>
+                                <span class="col">Outro GPIO (saída)</span>
+                                <span class="col">Define sentido de rotação 2</span>
+                            </div>
+                            <div class="motor-row">
+                                <span class="col">ENA</span>
+                                <span class="col">GPIO com PWM</span>
+                                <span class="col">Controla velocidade</span>
+                            </div>
+                            <div class="motor-row">
+                                <span class="col">GND</span>
+                                <span class="col">GND da ESP32 + GND da fonte do motor</span>
+                                <span class="col">Referência comum obrigatória</span>
+                            </div>
+                        </div>
+                        <div class="motor-warnings">
+                            <p><strong>⚠ Atenção:</strong> Não escolha os GPIOs antes de conferir o esquema da revisão da sua T-SIMCAM V1.3. Pinos ocupados pela câmera/modem não podem ser usados.</p>
+                            <p><strong>⚠ Alimentação:</strong> Nunca alimente o motor pelas GPIOs ou pelos 3,3V da ESP32. Use uma fonte separada adequada ao motor.</p>
+                            <p><strong>⚠ GND comum:</strong> Ligue o GND da fonte do motor, do L298N e da ESP32 juntos (referência comum).</p>
+                            <p><strong>⚠ Jumper ENA:</strong> Normalmente precisa ser removido para que a ESP32 controle o pino ENA por PWM.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card info-card">
+                    <h2>Pinos ocupados (T-SIMCAM V1.3)</h2>
+                    <p>Nao use estes GPIOs para o L298N:</p>
+                    <div class="occupied-list">
+                        <span class="badge">4</span><span class="badge">5</span><span class="badge">8</span><span class="badge">9</span><span class="badge">10</span><span class="badge">17</span><span class="badge">18</span>
+                        <span class="badge">25</span><span class="badge">26</span><span class="badge">36</span><span class="badge">39</span><span class="badge">41</span><span class="badge">42</span><span class="badge">43</span><span class="badge">44</span><span class="badge">45</span><span class="badge">46</span><span class="badge">48</span>
+                    </div>
+                    <p class="hint">Antes de energizar o circuito real, confirme os GPIOs livres no esquema da revisao V1.3 da sua placa.</p>
+                </div>
+            </section>
+
+            <!-- Aba: Configuração Wi-Fi -->
+            <section id="tab-wifi" class="tab-panel">
+                <div class="card setup-card">
+                    <h2>Configuracao de Rede Wi-Fi</h2>
+
+                    <div class="wifi-mode-card">
+                        <div class="mode-badge" id="wifi-mode-badge">Modo: Access Point (AP)</div>
+                        <div class="mode-info">
+                            <strong>SSID atual:</strong> <span id="wifi-current-ssid">WindFollow-Setup</span><br>
+                            <strong>IP do ESP32:</strong> <span id="wifi-local-ip">192.168.4.1</span><br>
+                            <strong>mDNS local:</strong> <span id="wifi-mdns">http://windfollow.local/setup</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Redes Wi-Fi disponíveis</label>
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <select id="wifi-networks" class="network-select" style="flex:1;">
+                                <option value="">Procurando redes...</option>
+                            </select>
+                            <button class="btn btn-outline btn-small" onclick="sim.scanWifi()">Atualizar</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Ou digite o nome da rede (SSID)</label>
+                        <input type="text" id="wifi-ssid-manual" placeholder="Nome da rede">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Senha do Wi-Fi</label>
+                        <input type="password" id="wifi-password" placeholder="Senha">
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-primary" onclick="sim.connectWifi()">Conectar e salvar</button>
+                    </div>
+                    <div id="wifi-msg" class="msg-result"></div>
+
+                    <div class="setup-hint">
+                        <p>Depois de conectar, acesse o ESP32 pela rede local em:</p>
+                        <p><strong>http://windfollow.local/setup</strong></p>
+                        <p>Caso o mDNS não resolva, use o IP exibido acima.</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="js/app.js"></script>
+</body>
+</html>
