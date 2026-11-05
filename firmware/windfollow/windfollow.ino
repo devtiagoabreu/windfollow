@@ -43,6 +43,10 @@ SystemState g_systemState = SystemState::Boot;
 TrackingStatus g_trackingStatus;
 CameraStatus   g_cameraStatus;
 
+// Contador de boots curtos: protege contra boot loop se a camera falhar.
+RTC_DATA_ATTR static uint8_t g_bootAttempts = 0;
+RTC_DATA_ATTR static bool    g_cameraSafeMode = false;
+
 // ============================================================
 // Declarações
 // ============================================================
@@ -55,6 +59,7 @@ void setupTracking();
 void setupDashboard();
 
 void loopCore();
+void loopSerial();
 void loopNetwork();
 void loopCamera();
 void loopMotion();
@@ -75,6 +80,19 @@ void setup() {
 
     pinMode(1, OUTPUT);
     digitalWrite(1, HIGH);
+
+    // Modem 4G nao e usado neste projeto. Manter PCIE_PWR (48) em LOW deixa o
+    // modem desligado e libera GPIO45/46 para o L298N.
+    pinMode(48, OUTPUT);
+    digitalWrite(48, LOW);
+
+    g_bootAttempts++;
+    if (g_bootAttempts > 3) {
+        g_cameraSafeMode = true;
+    }
+    Serial.printf("Reset reason: %d  boot #%u  safe_mode=%d\n",
+        (int)esp_reset_reason(), (unsigned)g_bootAttempts,
+        g_cameraSafeMode ? 1 : 0);
 
     g_systemState = SystemState::Init;
 
@@ -99,6 +117,7 @@ void setup() {
 // ============================================================
 void loop() {
     loopCore();
+    loopSerial();
     loopNetwork();
     loopCamera();
     loopMotion();
@@ -128,15 +147,30 @@ void setupNetwork() {
     String password = prefs.getString("wifi_password", "");
     prefs.end();
 
-    // AP sempre disponivel como fallback de configuracao.
+    // Nao grava credenciais no NVS do WiFi; o ConfigManager e a fonte da verdade.
+    WiFi.persistent(false);
     WiFi.mode(WIFI_AP_STA);
-    WiFi.softAP("WindFollow-Setup", "windfollow123");
+    delay(100);
+
+    bool apOk = false;
+    for (int attempt = 0; attempt < 3 && !apOk; attempt++) {
+        apOk = WiFi.softAP("WindFollow-Setup", "windfollow123");
+        if (!apOk) {
+            Serial.printf("Falha ao subir o AP (tentativa %d), reiniciando WiFi...\n", attempt + 1);
+            WiFi.mode(WIFI_OFF);
+            delay(250);
+            WiFi.mode(WIFI_AP_STA);
+            delay(250);
+        }
+    }
     WiFi.setSleep(false);
 
-    Serial.print(F("AP SSID: WindFollow-Setup  IP: "));
-    Serial.println(WiFi.softAPIP());
+    Serial.printf("AP %s  SSID: WindFollow-Setup  IP: %s  MAC: %s\n",
+        apOk ? "OK" : "FALHOU",
+        WiFi.softAPIP().toString().c_str(),
+        WiFi.softAPmacAddress().c_str());
 
-    if (ssid.length() > 0) {
+    if (ssid.length() > 0 && apOk) {
         Serial.print(F("Conectando a rede salva: "));
         Serial.println(ssid);
         WiFi.begin(ssid.c_str(), password.c_str());
@@ -164,14 +198,38 @@ void setupNetwork() {
 }
 
 void setupCamera() {
-    bool ok = cameraService.begin();
-    g_cameraStatus.ready = ok;
-    g_cameraStatus.available = cameraService.isAvailable();
-    g_cameraStatus.enabled = cameraService.isEnabled();
-    g_cameraStatus.width = cameraService.width();
-    g_cameraStatus.height = cameraService.height();
-    strncpy(g_cameraStatus.sensor, cameraService.sensorName(),
-            sizeof(g_cameraStatus.sensor) - 1);
+    HardwareConfig cfg = configManager.getConfig();
+
+    g_cameraStatus.available = cameraService.libraryAvailable();
+    g_cameraStatus.ready = false;
+    g_cameraStatus.enabled = false;
+    strncpy(g_cameraStatus.sensor, "none", sizeof(g_cameraStatus.sensor) - 1);
+
+    Serial.printf("[camera] biblioteca=%s\n",
+        cameraService.libraryAvailable() ? "sim" : "nao");
+
+    if (!cameraService.libraryAvailable()) {
+        return;
+    }
+
+    if (g_cameraSafeMode) {
+        Serial.println(F("[camera] safe mode ativo (boots repetidos); camera nao sera iniciada"));
+        return;
+    }
+
+    if (!cfg.auto_tracking) {
+        Serial.println(F("[camera] ociosa; inicia ao ativar a camera no painel"));
+        return;
+    }
+
+    if (cameraService.ensureStarted()) {
+        g_cameraStatus.ready = true;
+        g_cameraStatus.enabled = cameraService.isEnabled();
+        g_cameraStatus.width = cameraService.width();
+        g_cameraStatus.height = cameraService.height();
+        strncpy(g_cameraStatus.sensor, cameraService.sensorName(),
+                sizeof(g_cameraStatus.sensor) - 1);
+    }
 }
 
 void setupMotion() {
@@ -204,11 +262,65 @@ void setupDashboard() {
 // Loop
 // ============================================================
 void loopCore() {
+    static unsigned long lastBeat = 0;
+    static bool bootCountCleared = false;
+    unsigned long now = millis();
+
+    if (!bootCountCleared && now > 20000) {
+        g_bootAttempts = 0;
+        if (cameraService.isReady()) {
+            g_cameraSafeMode = false;
+        }
+        bootCountCleared = true;
+    }
+
+    if (now - lastBeat >= 5000) {
+        lastBeat = now;
+        Serial.printf("[hb] up=%lus sta=%d heap=%u psram=%u ap=%s cam=%d\n",
+            now / 1000,
+            (int)WiFi.status(),
+            (unsigned)ESP.getFreeHeap(),
+            (unsigned)ESP.getFreePsram(),
+            WiFi.softAPIP().toString().c_str(),
+            cameraService.isReady() ? 1 : 0);
+    }
+
     delay(2);
 }
 
 void loopNetwork() {
     dashboardService.tick();
+}
+
+void loopSerial() {
+    while (Serial.available() > 0) {
+        int c = Serial.read();
+        if (c == 'c' || c == 'C') {
+            Serial.println(F("[cmd] iniciando camera..."));
+            bool ok = cameraService.ensureStarted();
+            Serial.printf("[cmd] camera: %s%s\n",
+                ok ? "ok" : "falhou",
+                ok ? "" : " (ver mensagens acima)");
+        } else if (c == 'i' || c == 'I') {
+            Serial.printf("[cmd] sta=%d heap=%u psram=%u ap=%s cam=%d sensor=%s\n",
+                (int)WiFi.status(),
+                (unsigned)ESP.getFreeHeap(),
+                (unsigned)ESP.getFreePsram(),
+                WiFi.softAPIP().toString().c_str(),
+                cameraService.isReady() ? 1 : 0,
+                cameraService.sensorName());
+        } else if (c == 'p' || c == 'P') {
+            cameraService.ensureStarted();
+            size_t len = 0;
+            const char* b64 = cameraService.captureBase64(len);
+            Serial.printf("[cmd] captura: %s len=%u\n",
+                b64 ? "ok" : "falhou", (unsigned)len);
+        } else if (c == 'r' || c == 'R') {
+            Serial.println(F("[cmd] reiniciando..."));
+            delay(100);
+            ESP.restart();
+        }
+    }
 }
 
 void loopCamera() {

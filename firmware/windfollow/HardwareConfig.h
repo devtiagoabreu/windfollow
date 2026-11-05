@@ -11,11 +11,13 @@ enum class SystemState {
 };
 
 struct HardwareConfig {
-    int gpio_in1 = -1;
-    int gpio_in2 = -1;
-    int gpio_ena = -1;
-    float motor_voltage = 0.0f;
-    bool motor_enabled = false;
+    // Padrao do projeto para a T-SIMCAM V1.3 com o modem 4G desligado.
+    // O GPIO48 (PCIE_PWR) e mantido em LOW no boot para liberar 45/46.
+    int gpio_in1 = 45;
+    int gpio_in2 = 46;
+    int gpio_ena = 21;
+    float motor_voltage = 12.0f;
+    bool motor_enabled = true;
     int dead_zone = 30;
     int sensitivity = 30;
     int min_area = 100;

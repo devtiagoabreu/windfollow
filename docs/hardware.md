@@ -400,41 +400,80 @@ S3_CAM_SIM V1.3
 
 A documentação geral da T-SIMCAM apresenta um mapa de pinos, mas ele não deve ser considerado automaticamente válido para todos os circuitos IR-CUT e revisões.
 
-9.1 Pinagem publicada na documentação geral T-SIMCam
+9.1 Pinagem correta da S3_CAM_SIM V1.3 (IR-CUT)
 
-A documentação atual da família T-SIMCam apresenta os seguintes sinais:
+A tabela abaixo é a do exemplo de fábrica da LilyGO para a T-SIMCAM
+(`examples/t_sim_cam_factory/config.h`). Ela é a referência válida para o PCB
+S3_CAM_SIM V1.3 e é a usada por `firmware/windfollow/CameraService.cpp`.
 
 Câmera DVP
 Sinal	GPIO
-HREF	26
-VSYNC	25
-PCLK	36
-XCLK	40
-D0	39
-D1	41
-D2	42
-D3	43
-D4	44
-D5	45
-D6	46
-D7	48
+HREF	7
+VSYNC	6
+PCLK	13
+XCLK	14
+D0	11
+D1	9
+D2	8
+D3	10
+D4	12
+D5	17
+D6	16
+D7	15
 SDA	4
 SCL	5
-PWDN	9
-RESET	8
-Modem
+PWDN	-1 (não usado)
+RESET	-1 (não usado)
+IR-CUT	18
+
+Periféricos da placa
 Sinal	GPIO
-UART TX	18
-UART RX	17
-PWRKEY	10
+Cartão SD MISO	40
+Cartão SD MOSI	38
+Cartão SD SCLK	39
+Cartão SD CS	47
+PCIE PWR	48
+PCIE TX	45
+PCIE RX	46
+LED do modem	21
+Microfone	41 / 42 / 2
+UART do modem	43 / 44
+Power latch	1 (HIGH no boot)
+Botão	0
 
-ATENÇÃO: esta tabela é uma referência da documentação geral da T-SIMCam. A correspondência com o PCB S3_CAM_SIM V1.3 IR-CUT das fotografias ainda precisa ser confirmada.
-
-Não utilizar esses GPIOs para conexões externas sem conferir o esquema correspondente.
+ATENÇÃO: a tabela da wiki geral da T-SIMCam (HREF 26, VSYNC 25, PCLK 36,
+D0-D7 39-48) NÃO vale para esta revisão. Esses GPIOs pertencem ao flash/PSRAM
+(26-37) e à UART/PCIE do modem (39-48). Usá-los na câmera provoca panic
+`LoadProhibited` no `esp_camera_init` e boot loop.
 
 Documentação:
 
+https://github.com/Xinyuan-LilyGO/LilyGo-Camera-Series/blob/master/examples/t_sim_cam_factory/config.h
+
 https://wiki.lilygo.cc/products/t-sim-series/t-simcam/
+
+9.2 Ligação padrão do L298N (modem 4G desligado)
+
+Este projeto não usa o modem 4G. Com o GPIO48 (PCIE_PWR) mantido em LOW, os
+pinos 45 e 46 (UART do modem) ficam livres para o L298N:
+
+Função	GPIO	Ligação
+IN1	45	Entrada de sentido 1 do L298N
+IN2	46	Entrada de sentido 2 do L298N
+ENA	21	PWM de velocidade (jumper ENA removido)
+
+Cuidados:
+
+- GPIO45 e GPIO46 são strapping pins. O L298N não pode puxá-los para HIGH
+  durante o boot; as entradas do L298N são de alta impedância, então a ligação
+  direta funciona, mas confira com um multímetro antes de energizar.
+- O GPIO21 também aciona o LED do modem; como o modem fica desligado, ele é
+  usado como PWM do ENA.
+- GND do L298N, da fonte do motor e da placa devem ser comuns.
+- Não alimente o motor pela placa; use fonte separada.
+
+Esses valores são o padrão de fábrica do firmware e são gravados no NVS na
+primeira inicialização (ou ao restaurar os defaults no painel).
 
 10. ALIMENTAÇÃO ELÉTRICA
 

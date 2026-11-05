@@ -130,17 +130,17 @@
                     <form id="form-settings">
                         <div class="form-group">
                             <label>GPIO IN1 (L298N) — sentido 1</label>
-                            <input type="number" id="gpio_in1" min="0" max="48" placeholder="Ex: 21">
+                            <input type="number" id="gpio_in1" min="0" max="48" placeholder="Ex: 45">
                             <span class="helper">Sinal da ESP32 ao L298N que define o sentido de rotação. IN1=HIGH + IN2=LOW gira em um sentido.</span>
                         </div>
                         <div class="form-group">
                             <label>GPIO IN2 (L298N) — sentido 2</label>
-                            <input type="number" id="gpio_in2" min="0" max="48" placeholder="Ex: 22">
+                            <input type="number" id="gpio_in2" min="0" max="48" placeholder="Ex: 46">
                             <span class="helper">Trabalha com o IN1 para inverter o sentido. IN1=LOW + IN2=HIGH gira no sentido contrário. Ambos LOW = motor parado.</span>
                         </div>
                         <div class="form-group">
                             <label>GPIO ENA (L298N) — velocidade (PWM)</label>
-                            <input type="number" id="gpio_ena" min="0" max="48" placeholder="Ex: 23">
+                            <input type="number" id="gpio_ena" min="0" max="48" placeholder="Ex: 21">
                             <span class="helper">Controla a velocidade via PWM (0% desligado, 100% máximo). Jumper ENA do módulo deve ser removido para a ESP32 controlar por PWM.</span>
                         </div>
                         <div class="form-group">
@@ -210,7 +210,7 @@
                             </div>
                         </div>
                         <div class="motor-warnings">
-                            <p><strong>⚠ Atenção:</strong> Não escolha os GPIOs antes de conferir o esquema da revisão da sua T-SIMCAM V1.3. Pinos ocupados pela câmera/modem não podem ser usados.</p>
+                            <p><strong>⚠ Atenção:</strong> Padrão desta placa: IN1=45, IN2=46 e ENA=21, com o modem 4G desligado. Os GPIOs 0–20, 26–44, 47 e 48 pertencem à câmera, flash/PSRAM, SD, microfone e UART do modem.</p>
                             <p><strong>⚠ Alimentação:</strong> Nunca alimente o motor pelas GPIOs ou pelos 3,3V da ESP32. Use uma fonte separada adequada ao motor.</p>
                             <p><strong>⚠ GND comum:</strong> Ligue o GND da fonte do motor, do L298N e da ESP32 juntos (referência comum).</p>
                             <p><strong>⚠ Jumper ENA:</strong> Normalmente precisa ser removido para que a ESP32 controle o pino ENA por PWM.</p>
@@ -218,13 +218,12 @@
                     </div>
                 </div>
                 <div class="card info-card">
-                    <h2>Pinos ocupados (T-SIMCAM V1.3)</h2>
-                    <p>Nao use estes GPIOs para o L298N:</p>
+                    <h2>GPIOs do L298N (T-SIMCAM V1.3)</h2>
+                    <p>Ligação padrão deste projeto, com o modem 4G desligado:</p>
                     <div class="occupied-list">
-                        <span class="badge">4</span><span class="badge">5</span><span class="badge">8</span><span class="badge">9</span><span class="badge">10</span><span class="badge">17</span><span class="badge">18</span>
-                        <span class="badge">25</span><span class="badge">26</span><span class="badge">36</span><span class="badge">39</span><span class="badge">40</span><span class="badge">41</span><span class="badge">42</span><span class="badge">43</span><span class="badge">44</span><span class="badge">45</span><span class="badge">46</span><span class="badge">48</span>
+                        <span class="badge">IN1 = 45</span><span class="badge">IN2 = 46</span><span class="badge">ENA = 21</span>
                     </div>
-                    <p class="hint">Antes de energizar o circuito real, confirme os GPIOs livres no esquema da revisao V1.3 da sua placa.</p>
+                    <p class="hint">O GPIO48 (PCIE_PWR) fica em LOW no boot, mantendo o modem desligado. GPIO45/46 são strapping pins: o L298N não pode puxá-los para HIGH durante o boot. Também evite 0-20, 26-44, 47 e 48 (câmera, flash/PSRAM, SD, microfone e UART do modem).</p>
                 </div>
             </section>
 

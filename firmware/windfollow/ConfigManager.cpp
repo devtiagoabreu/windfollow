@@ -4,9 +4,31 @@ bool ConfigManager::begin() {
     if (!prefs.begin(namespaceName, false)) {
         return false;
     }
-    if (!loadFromPrefs()) {
-        loadDefaults();
+    loadFromPrefs();
+
+    // Migracao (uma unica vez): placas que nunca foram configuradas (GPIOs -1)
+    // passam a usar a ligacao padrao do projeto, com o modem 4G desligado:
+    // IN1=45 IN2=46 ENA=21.
+    if (!prefs.getBool("cfg_migrated_v2", false)) {
+        if (_config.gpio_in1 < 0 && _config.gpio_in2 < 0 && _config.gpio_ena < 0) {
+            HardwareConfig defaults;
+            _config.gpio_in1 = defaults.gpio_in1;
+            _config.gpio_in2 = defaults.gpio_in2;
+            _config.gpio_ena = defaults.gpio_ena;
+            _config.motor_enabled = defaults.motor_enabled;
+            if (_config.motor_voltage <= 0.0f) {
+                _config.motor_voltage = defaults.motor_voltage;
+            }
+            prefs.putInt("gpio_in1", _config.gpio_in1);
+            prefs.putInt("gpio_in2", _config.gpio_in2);
+            prefs.putInt("gpio_ena", _config.gpio_ena);
+            prefs.putBool("motor_enabled", _config.motor_enabled);
+            prefs.putFloat("motor_voltage", _config.motor_voltage);
+            Serial.println(F("[config] padrao aplicado: IN1=45 IN2=46 ENA=21 V=12.0"));
+        }
+        prefs.putBool("cfg_migrated_v2", true);
     }
+
     prefs.end();
     return true;
 }
@@ -62,7 +84,12 @@ bool ConfigManager::resetConfig() {
 
 bool ConfigManager::validateGpio(int gpio) const {
     if (gpio < 0 || gpio > 48) return false;
-    int occupied[] = {4, 5, 8, 9, 10, 17, 18, 25, 26, 36, 39, 40, 41, 42, 43, 44, 45, 46, 48};
+    // Bloqueados: power/button/mic, camera+IR (0-20), flash/PSRAM (26-37),
+    // SD/mic/UART do modem (38-44), SD CS (47) e PCIE_PWR (48).
+    // Liberados: 21-25, 45 e 46 (modem 4G desligado).
+    int occupied[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+                      16, 17, 18, 19, 20, 26, 27, 28, 29, 30, 31, 32, 33, 34,
+                      35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 47, 48};
     for (int i = 0; i < sizeof(occupied) / sizeof(occupied[0]); i++) {
         if (gpio == occupied[i]) return false;
     }

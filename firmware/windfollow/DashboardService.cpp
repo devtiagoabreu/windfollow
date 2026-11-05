@@ -481,11 +481,18 @@ void DashboardService::handleMotionStop() {
 // ============================================================
 
 void DashboardService::handleTrackingStart() {
+    cameraService.ensureStarted();
+
     HardwareConfig cfg = configManager.getConfig();
     cfg.auto_tracking = true;
     configManager.saveConfig(cfg);
     g_trackingStatus.tracking = true;
-    sendJson(s_webServer, 200, "{\"status\":\"ok\",\"tracking\":true}");
+
+    char buf[160];
+    snprintf(buf, sizeof(buf),
+        "{\"status\":\"ok\",\"tracking\":true,\"camera\":%s}",
+        cameraService.isReady() ? "true" : "false");
+    sendJson(s_webServer, 200, buf);
 }
 
 void DashboardService::handleTrackingStop() {
@@ -539,10 +546,10 @@ void DashboardService::handleTrackingStatus() {
 // ============================================================
 
 void DashboardService::handleCameraStart() {
-    if (!cameraService.isReady()) {
+    if (!cameraService.ensureStarted()) {
         sendJson(s_webServer, 200,
             "{\"status\":\"error\",\"ready\":false,"
-            "\"message\":\"Camera indisponivel. Instale a biblioteca esp32-camera e confira a pinagem da T-SIMCAM.\"}");
+            "\"message\":\"Camera indisponivel. Confira a pinagem da T-SIMCAM e o log serial.\"}");
         return;
     }
 

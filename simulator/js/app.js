@@ -44,13 +44,13 @@ const sim = {
         { ssid: 'WiFi_Livre', rssi: -80 }
     ],
 
-    // Configuracao de hardware
+    // Configuracao de hardware (padrao T-SIMCAM V1.3, modem 4G desligado)
     config: {
-        gpio_in1: -1,
-        gpio_in2: -1,
-        gpio_ena: -1,
-        motor_voltage: 0,
-        motor_enabled: false,
+        gpio_in1: 45,
+        gpio_in2: 46,
+        gpio_ena: 21,
+        motor_voltage: 12,
+        motor_enabled: true,
         dead_zone: 30,
         sensitivity: 30,
         min_area: 100,
@@ -59,7 +59,8 @@ const sim = {
         auto_tracking: false
     },
 
-    occupiedGpios: [4, 5, 8, 9, 10, 17, 18, 25, 26, 36, 39, 41, 42, 43, 44, 45, 46, 48],
+    occupiedGpios: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+        26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 47, 48],
 
     init() {
         this.video = document.getElementById('cam-video');
@@ -672,11 +673,11 @@ const sim = {
 
     reset() {
         this.config = {
-            gpio_in1: -1,
-            gpio_in2: -1,
-            gpio_ena: -1,
-            motor_voltage: 0,
-            motor_enabled: false,
+            gpio_in1: 45,
+            gpio_in2: 46,
+            gpio_ena: 21,
+            motor_voltage: 12,
+            motor_enabled: true,
             dead_zone: 30,
             sensitivity: 30,
             min_area: 100,

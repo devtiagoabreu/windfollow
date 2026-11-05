@@ -18,6 +18,12 @@ public:
     HardwareConfig getConfig() const;
 
 private:
+    // Canal LEDC dedicado ao ENA. A esp32-camera usa LEDC_CHANNEL_0/TIMER_0
+    // para o XCLK; o canal 2 usa outro timer e nao conflita.
+    static const int WF_ENA_PWM_CHANNEL = 2;
+
+    void writePwm(int pwm);
+
     HardwareConfig _config;
     bool _initialized = false;
     int _currentPwm = 0;

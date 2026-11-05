@@ -13,24 +13,26 @@
 CameraService cameraService;
 
 #if WF_HAS_CAMERA
-// Pinagem publicada na documentacao da familia T-SIMCAM (docs/hardware.md, 9.1).
-// Confirme no esquema da sua revisao V1.3 antes de energizar.
-#define WF_CAM_PIN_PWDN   9
-#define WF_CAM_PIN_RESET  8
-#define WF_CAM_PIN_XCLK   40
+// Pinagem oficial da T-SIMCAM V1.3 (IR-CUT), extraida do exemplo de fabrica
+// LilyGo-Camera-Series/examples/t_sim_cam_factory/config.h.
+// NAO use a tabela generica da wiki: ela aponta para GPIOs do flash/PSRAM
+// (26-37) e provoca panic (LoadProhibited) no esp_camera_init.
+#define WF_CAM_PIN_PWDN   -1
+#define WF_CAM_PIN_RESET  -1
+#define WF_CAM_PIN_XCLK   14
 #define WF_CAM_PIN_SIOD   4
 #define WF_CAM_PIN_SIOC   5
-#define WF_CAM_PIN_D7     48
-#define WF_CAM_PIN_D6     46
-#define WF_CAM_PIN_D5     45
-#define WF_CAM_PIN_D4     44
-#define WF_CAM_PIN_D3     43
-#define WF_CAM_PIN_D2     42
-#define WF_CAM_PIN_D1     41
-#define WF_CAM_PIN_D0     39
-#define WF_CAM_PIN_VSYNC  25
-#define WF_CAM_PIN_HREF   26
-#define WF_CAM_PIN_PCLK   36
+#define WF_CAM_PIN_D7     15
+#define WF_CAM_PIN_D6     16
+#define WF_CAM_PIN_D5     17
+#define WF_CAM_PIN_D4     12
+#define WF_CAM_PIN_D3     10
+#define WF_CAM_PIN_D2     8
+#define WF_CAM_PIN_D1     9
+#define WF_CAM_PIN_D0     11
+#define WF_CAM_PIN_VSYNC  6
+#define WF_CAM_PIN_HREF   7
+#define WF_CAM_PIN_PCLK   13
 #endif
 
 static void* wfAlloc(size_t size) {
@@ -65,6 +67,12 @@ static size_t base64Encode(const uint8_t* src, size_t len, char* out, size_t out
 
 bool CameraService::begin() {
 #if WF_HAS_CAMERA
+    if (_ready) return true;
+    if (_started) return false;
+    _started = true;
+
+    Serial.println(F("[camera] inicializando (T-SIMCAM V1.3)..."));
+
     camera_config_t config = {};
     config.ledc_channel = LEDC_CHANNEL_0;
     config.ledc_timer = LEDC_TIMER_0;
@@ -108,9 +116,9 @@ bool CameraService::begin() {
     sensor_t* sensor = esp_camera_sensor_get();
     if (sensor) {
         int pid = sensor->id.PID;
-        if (pid == 0x26) {
+        if (pid == 0x26 || pid == 0x2640) {
             strncpy(_sensor, "OV2640", sizeof(_sensor) - 1);
-        } else if (pid == 0x56) {
+        } else if (pid == 0x56 || pid == 0x5640) {
             strncpy(_sensor, "OV5640", sizeof(_sensor) - 1);
         } else {
             snprintf(_sensor, sizeof(_sensor), "PID:0x%02X", pid);
@@ -146,12 +154,27 @@ bool CameraService::begin() {
     g_cameraStatus.enabled = false;
     strncpy(g_cameraStatus.sensor, "none", sizeof(g_cameraStatus.sensor) - 1);
     _ready = false;
+    _started = true;
+    return false;
+#endif
+}
+
+bool CameraService::ensureStarted() {
+    if (_ready) return true;
+    if (_started) return false;
+    return begin();
+}
+
+bool CameraService::libraryAvailable() const {
+#if WF_HAS_CAMERA
+    return true;
+#else
     return false;
 #endif
 }
 
 bool CameraService::isReady() const { return _ready; }
-bool CameraService::isAvailable() const { return g_cameraStatus.available; }
+bool CameraService::isAvailable() const { return libraryAvailable(); }
 bool CameraService::isEnabled() const { return _enabled; }
 
 void CameraService::setEnabled(bool enabled) {

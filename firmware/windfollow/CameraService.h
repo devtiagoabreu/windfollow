@@ -8,8 +8,10 @@
 class CameraService {
 public:
     bool begin();
+    bool ensureStarted();
     bool isReady() const;
     bool isAvailable() const;
+    bool libraryAvailable() const;
     bool isEnabled() const;
     void setEnabled(bool enabled);
 
@@ -28,6 +30,7 @@ private:
     const uint8_t* captureJpeg(size_t& length);
 
     bool _ready = false;
+    bool _started = false;
     bool _enabled = true;
     int _frameCount = 0;
     int _width = 0;
