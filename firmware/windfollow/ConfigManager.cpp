@@ -18,7 +18,7 @@ bool ConfigManager::loadFromPrefs() {
     _config.motor_voltage = prefs.getFloat("motor_voltage", 0.0f);
     _config.motor_enabled = prefs.getBool("motor_enabled", false);
     _config.dead_zone = prefs.getInt("dead_zone", 30);
-    _config.sensitivity = prefs.getInt("sensitivity", 500);
+    _config.sensitivity = prefs.getInt("sensitivity", 30);
     _config.min_area = prefs.getInt("min_area", 100);
     _config.step_duration_ms = prefs.getInt("step_duration_ms", 150);
     _config.stabilization_ms = prefs.getInt("stabilization_ms", 300);
@@ -62,7 +62,7 @@ bool ConfigManager::resetConfig() {
 
 bool ConfigManager::validateGpio(int gpio) const {
     if (gpio < 0 || gpio > 48) return false;
-    int occupied[] = {4, 5, 8, 9, 10, 17, 18, 25, 26, 36, 39, 41, 42, 43, 44, 45, 46, 48};
+    int occupied[] = {4, 5, 8, 9, 10, 17, 18, 25, 26, 36, 39, 40, 41, 42, 43, 44, 45, 46, 48};
     for (int i = 0; i < sizeof(occupied) / sizeof(occupied[0]); i++) {
         if (gpio == occupied[i]) return false;
     }

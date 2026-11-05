@@ -31,11 +31,16 @@ public:
     void handleWifiConfig();
     void handleConfigGet();
     void handleConfigPost();
+    void handleConfigReset();
     void handleMotionMove();
     void handleMotionStop();
     void handleTrackingStart();
     void handleTrackingStop();
     void handleTrackingStatus();
+    void handleCameraStart();
+    void handleCameraStop();
+    void handleCameraStatus();
+    void handleCameraCapture();
 
 private:
     bool m_running;
@@ -43,4 +48,4 @@ private:
 
 extern DashboardService dashboardService;
 
-#endif
+#endif // DASHBOARD_SERVICE_H

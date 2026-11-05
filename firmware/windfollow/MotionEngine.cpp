@@ -2,14 +2,15 @@
 
 bool MotionEngine::begin() {
     _isMoving = false;
+    _moveDurationMs = 0;
     return true;
 }
 
 void MotionEngine::update() {
-    if (_isMoving && _moveDurationMs > 0) {
-        if (millis() - _moveStartTime >= (unsigned long)_moveDurationMs) {
-            stop();
-        }
+    l298nDriver.update();
+    _isMoving = l298nDriver.isMoving();
+    if (!_isMoving) {
+        _moveDurationMs = 0;
     }
 }
 
