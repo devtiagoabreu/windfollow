@@ -6,6 +6,8 @@
 
 class DashboardService : public SmartCamService {
 public:
+    DashboardService();
+    ~DashboardService();
     bool init() override;
     void tick() override;
     bool deinit() override;

@@ -29,6 +29,8 @@ MotionEngine    motionEngine;
 MotionDetector  motionDetector;
 DashboardService dashboardService;
 
+SystemState g_systemState = SystemState::Boot;
+
 // ============================================================
 // Declarações
 // ============================================================
