@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WindFollowBlind - Simulador ESP32</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="simulator-badge">SIMULADOR WindFollowBlind (sem camera)</div>
+    <div id="app">
+        <header>
+            <h1>WindFollowBlind</h1>
+            <div class="header-actions">
+                <label class="theme-switch">
+                    <input type="checkbox" id="theme-toggle" onchange="sim.toggleTheme()">
+                    <span class="theme-slider"></span>
+                </label>
+                <div id="connection-status" class="status-indicator status-ok">Simulador ativo</div>
+            </div>
+        </header>
+
+        <!-- Abas principais -->
+        <nav class="tabs" id="main-tabs">
+            <button class="tab active" data-tab="dashboard" onclick="sim.switchTab('dashboard', this)">
+                <span class="tab-icon">📺</span> Painel de Controle
+            </button>
+            <button class="tab" data-tab="devices" onclick="sim.switchTab('devices', this)">
+                <span class="tab-icon">⚙️</span> Configuração de Dispositivos
+            </button>
+            <button class="tab" data-tab="wifi" onclick="sim.switchTab('wifi', this)">
+                <span class="tab-icon">📶</span> Configuração Wi-Fi
+            </button>
+        </nav>
+
+        <main id="content">
+            <!-- Aba: Painel de Controle -->
+            <section id="tab-dashboard" class="tab-panel active">
+                <div class="card">
+                    <h2>Motores (L298N) — Simulador</h2>
+                    <div class="status-grid">
+                        <div class="status-item">
+                            <span class="label">Wi-Fi</span>
+                            <span class="value" id="status-wifi">Modo AP</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="label">Modo</span>
+                            <span class="value" id="status-mode">Idle</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="label">Motor 1</span>
+                            <span class="value" id="status-motor1">Parado</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="label">Motor 2</span>
+                            <span class="value" id="status-motor2">Parado</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="label">Direção M1</span>
+                            <span class="value" id="status-dir1">—</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="label">Direção M2</span>
+                            <span class="value" id="status-dir2">—</span>
+                        </div>
+                    </div>
+
+                    <!-- Indicadores visuais de posição dos motores -->
+                    <div class="direction-card">
+                        <h3>Posicao dos Motores (simulada)</h3>
+                        <div class="motor-sim">
+                            <div class="motor-sim-col">
+                                <div class="motor-label">Motor 1</div>
+                                <div class="motor-track" id="motor1-track">
+                                    <div class="motor-pos" id="motor1-pos"></div>
+                                    <div class="motor-center" id="motor1-center"></div>
+                                </div>
+                                <div class="motor-legend">
+                                    <span class="dir-label dir-left">Esq</span>
+                                    <span class="dir-label dir-center">Centro</span>
+                                    <span class="dir-label dir-right">Dir</span>
+                                </div>
+                            </div>
+                            <div class="motor-sim-col">
+                                <div class="motor-label">Motor 2</div>
+                                <div class="motor-track" id="motor2-track">
+                                    <div class="motor-pos" id="motor2-pos"></div>
+                                    <div class="motor-center" id="motor2-center"></div>
+                                </div>
+                                <div class="motor-legend">
+                                    <span class="dir-label dir-left">Esq</span>
+                                    <span class="dir-label dir-center">Centro</span>
+                                    <span class="dir-label dir-right">Dir</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card controls-card">
+                    <h2>Controles Manuais</h2>
+                    <div class="btn-group">
+                        <h4>Motor 1</h4>
+                        <button class="btn btn-primary" onclick="sim.motorMove('1','esquerda')">Esquerda</button>
+                        <button class="btn btn-danger" onclick="sim.motorStop('1')">Parar</button>
+                        <button class="btn btn-primary" onclick="sim.motorMove('1','direita')">Direita</button>
+                    </div>
+                    <div class="btn-group">
+                        <h4>Motor 2</h4>
+                        <button class="btn btn-primary" onclick="sim.motorMove('2','esquerda')">Esquerda</button>
+                        <button class="btn btn-danger" onclick="sim.motorStop('2')">Parar</button>
+                        <button class="btn btn-primary" onclick="sim.motorMove('2','direita')">Direita</button>
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-danger" onclick="sim.motorStop()">Parar Todos</button>
+                    </div>
+                    <div class="control-row">
+                        <label class="toggle">
+                            <input type="checkbox" id="toggle-m1" onchange="sim.toggleMotor1(this.checked)" checked>
+                            <span class="toggle-slider"></span>
+                            <span class="toggle-label nowrap">Motor 1 habilitado</span>
+                        </label>
+                        <label class="toggle">
+                            <input type="checkbox" id="toggle-m2" onchange="sim.toggleMotor2(this.checked)" checked>
+                            <span class="toggle-slider"></span>
+                            <span class="toggle-label nowrap">Motor 2 habilitado</span>
+                        </label>
+                    </div>
+                    <div class="camera-hint">
+                        <p>🕷️ Sem câmera: simulacao visual dos 2 motores DC via L298N.</p>
+                        <p class="hint-detail">Ao acionar um motor, o indicador se desloca e retorna ao centro ao parar.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Aba: Configuração de Dispositivos -->
+            <section id="tab-devices" class="tab-panel">
+                <div class="card">
+                    <h2>Configuracao de Hardware (L298N + 2 Motores)</h2>
+                    <p class="hint">Valores salvos no localStorage do navegador (simula NVS/Preferences).</p>
+                    <form id="form-settings">
+                        <div class="form-group">
+                            <label>GPIO IN1 (Motor 1 — sentido 1)</label>
+                            <input type="number" id="gpio_in1" min="0" max="48" placeholder="Ex: 26">
+                            <span class="helper">Sinal da ESP32 ao L298N (Motor 1).</span>
+                        </div>
+                        <div class="form-group">
+                            <label>GPIO IN2 (Motor 1 — sentido 2)</label>
+                            <input type="number" id="gpio_in2" min="0" max="48" placeholder="Ex: 25">
+                            <span class="helper">Define o sentido contrario do Motor 1.</span>
+                        </div>
+                        <div class="form-group">
+                            <label>GPIO ENA (Motor 1 — PWM)</label>
+                            <input type="number" id="gpio_ena" min="0" max="48" placeholder="Ex: -1 (jumper)">
+                            <span class="helper">-1 = jumper ENA instalado (sem PWM).</span>
+                        </div>
+                        <div class="form-group">
+                            <label>GPIO IN3 (Motor 2 — sentido 1)</label>
+                            <input type="number" id="gpio_in3" min="0" max="48" placeholder="Ex: 32">
+                            <span class="helper">Sinal da ESP32 ao L298N (Motor 2).</span>
+                        </div>
+                        <div class="form-group">
+                            <label>GPIO IN4 (Motor 2 — sentido 2)</label>
+                            <input type="number" id="gpio_in4" min="0" max="48" placeholder="Ex: 33">
+                            <span class="helper">Define o sentido contrario do Motor 2.</span>
+                        </div>
+                        <div class="form-group">
+                            <label>GPIO ENB (Motor 2 — PWM)</label>
+                            <input type="number" id="gpio_enb" min="0" max="48" placeholder="Ex: -1 (jumper)">
+                            <span class="helper">-1 = jumper ENB instalado (sem PWM).</span>
+                        </div>
+                        <div class="form-group">
+                            <label>GPIO Botao 1 (Motor 1)</label>
+                            <input type="number" id="gpio_btn1" min="0" max="48" placeholder="Ex: 27">
+                            <span class="helper">Botao NA entre este GPIO e GND.</span>
+                        </div>
+                        <div class="form-group">
+                            <label>GPIO Botao 2 (Motor 2)</label>
+                            <input type="number" id="gpio_btn2" min="0" max="48" placeholder="Ex: 14">
+                            <span class="helper">Botao NA entre este GPIO e GND.</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Duracao do pulso (ms)</label>
+                            <input type="number" id="step_duration_ms" min="50" max="2000" value="150">
+                            <span class="helper">Tempo de acionamento do motor a cada comando.</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Motor 1 habilitado</label>
+                            <select id="motor1_enabled">
+                                <option value="true">Sim</option>
+                                <option value="false">Nao</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Motor 2 habilitado</label>
+                            <select id="motor2_enabled">
+                                <option value="true">Sim</option>
+                                <option value="false">Nao</option>
+                            </select>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-primary" id="btn-save">Salvar configuracao</button>
+                            <button type="button" class="btn btn-outline" onclick="sim.validate()">Validar pinos</button>
+                            <button type="button" class="btn btn-outline" onclick="sim.reset()">Reset defaults</button>
+                        </div>
+                        <div id="msg-result" class="msg-result"></div>
+                    </form>
+                    <div class="info-card motor-info">
+                        <h2>Padrao de fabrica</h2>
+                        <div class="occupied-list">
+                            <span class="badge">M1: IN1=26, IN2=25, BT1=27</span>
+                            <span class="badge">M2: IN3=32, IN4=33, BT2=14</span>
+                        </div>
+                        <p class="hint">Conforme docs/documentacao_hardware_esp32_l298n.md.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Aba: Configuração Wi-Fi -->
+            <section id="tab-wifi" class="tab-panel">
+                <div class="card setup-card">
+                    <h2>Configuracao de Rede Wi-Fi</h2>
+                    <div class="setup-hint">
+                        <p>Esta e uma simulacao local. Nenhuma rede real eh configurada.</p>
+                        <p>No ESP32 real (COM6), acesse: <strong>http://windflollowblind.local/</strong></p>
+                    </div>
+                    <div class="form-group">
+                        <label>Modo</label>
+                        <select id="wifi-mode">
+                            <option value="AP">Access Point (AP)</option>
+                            <option value="STA">Estacao (STA)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>SSID</label>
+                        <input type="text" id="wifi-ssid" value="WindFollowBlind-Setup">
+                    </div>
+                    <div class="form-group">
+                        <label>Senha</label>
+                        <input type="password" id="wifi-password" value="windfollow123">
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-primary" onclick="sim.applyWifiSim()">Aplicar (simulacao)</button>
+                    </div>
+                    <div id="wifi-msg" class="msg-result"></div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="js/app.js"></script>
+</body>
+</html>

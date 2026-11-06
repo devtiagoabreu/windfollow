@@ -335,16 +335,22 @@ void loopMotion() {
 
 void loopTracking() {
     static unsigned long lastDetect = 0;
-    static unsigned long lastMove = 0;
-    static bool havePrev = false;
+    static unsigned long settleUntil = 0;
+    static float smoothErrorX = 0.0f;
+    static int missCount = 0;
+    static bool targetLocked = false;   // alvo unico: so solta apos miss_frames
+    static float refCenterX = 0.0f;     // centro de referencia movel (coords de detect 160x120)
     static uint8_t grayFrame[WF_DETECT_W * WF_DETECT_H];
-    static uint8_t prevFrame[WF_DETECT_W * WF_DETECT_H];
 
     if (!cameraService.isReady()) return;
 
     unsigned long now = millis();
     if ((now - lastDetect) < 150) return;
     lastDetect = now;
+
+    // Durante o ajuste do motor (settle) suprime a detecção: o fundo inteiro se
+    // desloca com o movimento da câmera (ego-movimento) e geraria falso positivo.
+    if (now < settleUntil) return;
 
     int srcW = 0;
     int srcH = 0;
@@ -359,17 +365,24 @@ void loopTracking() {
     g_trackingStatus.frameHeight = srcH;
 
     HardwareConfig cfg = configManager.getConfig();
-    MotionRegion region;
-    if (havePrev) {
-        region = motionDetector.detect(grayFrame, prevFrame, WF_DETECT_W, WF_DETECT_H,
-                                       cfg.sensitivity, cfg.min_area);
-    }
-    memcpy(prevFrame, grayFrame, sizeof(grayFrame));
-    havePrev = true;
+
+    // Diferença contra modelo de fundo (EMA) + connected components: maior blob
+    // (unico alvo por quadro).
+    MotionRegion region = motionDetector.detect(grayFrame, WF_DETECT_W, WF_DETECT_H,
+                                                cfg.sensitivity, cfg.min_area, cfg.bg_alpha);
+
+    float scaleX = (float)srcW / (float)WF_DETECT_W;
+    float scaleY = (float)srcH / (float)WF_DETECT_H;
 
     if (region.valid) {
-        float scaleX = (float)srcW / (float)WF_DETECT_W;
-        float scaleY = (float)srcH / (float)WF_DETECT_H;
+        // Se ainda nao travamos um alvo, travamos neste maior blob e fixa o
+        // centro de referencia na posicao onde ele esta.
+        if (!targetLocked) {
+            targetLocked = true;
+            smoothErrorX = 0.0f;
+            refCenterX = (float)region.centerX;
+        }
+        missCount = 0;
 
         int cx = (int)(region.centerX * scaleX);
         int cy = (int)(region.centerY * scaleY);
@@ -381,29 +394,81 @@ void loopTracking() {
         g_trackingStatus.boxH = (int)(region.height * scaleY);
         g_trackingStatus.centerX = cx;
         g_trackingStatus.centerY = cy;
-        g_trackingStatus.errorX = cx - (srcW / 2);
+        int errorX = cx - (srcW / 2);
+        g_trackingStatus.errorX = errorX;
         g_trackingStatus.lastMotionMs = now;
 
-        if (g_trackingStatus.errorX < -cfg.dead_zone) {
-            g_trackingStatus.direction = "esquerda";
-        } else if (g_trackingStatus.errorX > cfg.dead_zone) {
-            g_trackingStatus.direction = "direita";
-        } else {
-            g_trackingStatus.direction = "centro";
+        // Filtro temporal do erro (EMA): remove jitter quadro-a-quadro (apenas para exibição)
+        float a = cfg.ema_alpha_err;
+        smoothErrorX = a * smoothErrorX + (1.0f - a) * (float)errorX;
+
+        // Erro em relacao ao centro de referencia movel (coords de detect)
+        float errDetect = (float)region.centerX - refCenterX;
+        float absErr = fabsf(errDetect);
+        float halfW = (float)cfg.trackWindowW / 2.0f;
+
+        // Histerese na janela de rastreamento: se ja estamos dentro, so sai quando
+        // o objeto deixa completamente a janela (halfW * dead_zone_hyst).
+        static bool inDeadZone = false;
+        if (inDeadZone) {
+            if (absErr <= halfW * cfg.dead_zone_hyst) {
+                // Desliza suavemente o centro de referencia para onde o objeto parou
+                refCenterX = refCenterX + ((float)region.centerX - refCenterX) * cfg.refAlpha;
+                g_trackingStatus.direction = "centro";
+                return; // motor parado
+            }
+            inDeadZone = false;
         }
 
-        bool outsideDeadZone = abs(g_trackingStatus.errorX) > cfg.dead_zone;
-        if (cfg.auto_tracking && outsideDeadZone &&
-            (now - lastMove) >= (unsigned long)cfg.stabilization_ms) {
-            if (g_trackingStatus.errorX < 0) {
-                motionEngine.esquerda(cfg.step_duration_ms, 200);
-            } else {
-                motionEngine.direita(cfg.step_duration_ms, 200);
-            }
-            lastMove = now;
+        if (absErr <= halfW) {
+            inDeadZone = true;
+            refCenterX = refCenterX + ((float)region.centerX - refCenterX) * cfg.refAlpha;
+            g_trackingStatus.direction = "centro";
+            return; // motor parado
+        }
+
+        // Fora da janela: motor se move para trazer o objeto de volta ao centro da janela.
+        // O erro efetivo e somente o que excede a metade da janela (dead zone),
+        // para nao mover quando o objeto esta dentro da zona de tolerancia.
+        const float effectiveError = absErr - halfW;
+        if (cfg.auto_tracking && targetLocked && effectiveError > 0.0f) {
+            // Controle proporcional: erro maior = movimento mais longo e PWM mais alto.
+            // Desacelera naturalmente ao se aproximar do centro da janela.
+            int duration = (int)(cfg.kp_x * effectiveError);
+            if (duration < cfg.move_min_ms) duration = cfg.move_min_ms;
+            if (duration > cfg.move_max_ms) duration = cfg.move_max_ms;
+
+            int pwm = (int)(cfg.pwm_kp * effectiveError);
+            if (pwm < cfg.pwm_min) pwm = cfg.pwm_min;
+            if (pwm > cfg.pwm_max) pwm = cfg.pwm_max;
+
+            if (errDetect < 0) motionEngine.esquerda(duration, pwm);
+            else motionEngine.direita(duration, pwm);
+
+            // Suprime detecção enquanto o motor se move e durante o ajuste
+            // (fundo se desloca com a câmera = ego-movimento).
+            settleUntil = now + (unsigned long)duration + (unsigned long)cfg.settle_ms;
         }
     } else {
-        // Mantem o ultimo movimento por um curto periodo para evitar oscilacao na UI.
+        // Sem movimento neste quadro: conta miss. So solta o alvo apos miss_frames.
+        missCount++;
+        if (missCount >= cfg.miss_frames) {
+            targetLocked = false;
+            motionEngine.stop();
+            smoothErrorX = 0.0f;
+            refCenterX = 0.0f;
+            g_trackingStatus.motionDetected = false;
+            g_trackingStatus.boxX = 0;
+            g_trackingStatus.boxY = 0;
+            g_trackingStatus.boxW = 0;
+            g_trackingStatus.boxH = 0;
+            g_trackingStatus.centerX = 0;
+            g_trackingStatus.centerY = 0;
+            g_trackingStatus.errorX = 0;
+            g_trackingStatus.direction = "centro";
+            missCount = 0;
+        }
+        // Mantém o último movimento por um curto período para evitar oscilação na UI.
         if ((now - g_trackingStatus.lastMotionMs) > 800) {
             g_trackingStatus.motionDetected = false;
             g_trackingStatus.boxX = 0;

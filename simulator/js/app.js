@@ -12,6 +12,7 @@ const sim = {
     canvas: null,
     ctx: null,
     prevFrame: null,
+    bgFrame: null,
     frameWidth: 0,
     frameHeight: 0,
     detectWidth: 160,   // resolução menor para detecção rápida
@@ -19,6 +20,12 @@ const sim = {
     cameraActive: false,
     animFrame: null,
     lastMoveTime: 0,
+    settleUntil: 0,
+    smoothErrorX: 0,
+    missCount: 0,
+    inDeadZone: false,
+    targetLocked: false,
+    refCenterX: 0,
     frameCount: 0,
     targetX: 320,       // posição X do alvo no vídeo (inicia no centro)
     targetY: 240,       // posição Y do alvo no vídeo
@@ -54,6 +61,20 @@ const sim = {
         dead_zone: 30,
         sensitivity: 30,
         min_area: 100,
+        bg_alpha: 0.95,
+        kp_x: 2.5,          // ms de movimento por pixel de erro (controle proporcional)
+        move_min_ms: 40,    // duracao minima de um passo (só usado quando valido mover)
+        move_max_ms: 400,   // duracao maxima de um passo
+        settle_ms: 300,     // tempo de assento apos mover (suprime detecao por ego-movimento)
+        ema_alpha_err: 0.7, // suavizacao temporal do erro (remove jitter)
+        miss_frames: 8,     // quadros sem alvo antes de soltar o rastreamento
+        pwm_kp: 1.2,        // PWM por pixel de erro (desacelera perto do centro)
+        pwm_min: 90,        // PWM mínimo para vencer atrito/inercia do motor DC
+        pwm_max: 200,       // PWM máximo
+        dead_zone_hyst: 1.5,// histerese: só sai da zona morta se erro > dead_zone*hyst
+        trackWindowW: 40,   // largura da janela de rastreamento (px, resolucao de detect)
+        trackWindowH: 40,   // altura (reservado)
+        refAlpha: 0.15,     // deslize suave do centro de referencia quando parado na zona
         step_duration_ms: 150,
         stabilization_ms: 300,
         auto_tracking: false
@@ -301,12 +322,17 @@ const sim = {
 
         const currFrame = this.toGrayscale(this.ctx.getImageData(0, 0, this.detectWidth, this.detectHeight));
 
-        if (this.prevFrame) {
-            const motion = this.detectMotion(currFrame, this.prevFrame);
-            this.handleMotion(motion);
+        const now = Date.now();
+        // Durante o ajuste do motor (settle) suprime a detecçăo: o fundo inteiro se
+        // desloca com o movimento da câmera (ego-movimento) e geraria falso positivo.
+        if (now < this.settleUntil) {
+            this.animFrame = requestAnimationFrame(() => this.loop());
+            return;
         }
 
-        this.prevFrame = currFrame;
+        const motion = this.detectMotion(currFrame);
+        this.handleMotion(motion, now);
+
         this.frameCount++;
 
         this.animFrame = requestAnimationFrame(() => this.loop());
@@ -321,49 +347,114 @@ const sim = {
         return gray;
     },
 
-    detectMotion(curr, prev) {
-        const w = this.frameWidth;
-        const h = this.frameHeight;
+    detectMotion(curr) {
+        const w = this.detectWidth;
+        const h = this.detectHeight;
         const size = w * h;
         const sensitivity = this.config.sensitivity;
         const minArea = this.config.min_area;
+        const alpha = this.config.bg_alpha;
 
-        let minX = w, minY = h, maxX = 0, maxY = 0;
-        let changedCount = 0;
+        // Inicializa o modelo de fundo no primeiro frame
+        if (!this.bgFrame) {
+            this.bgFrame = new Uint8Array(curr);
+            this.visited = new Uint8Array(size);
+            return { valid: false, area: 0 };
+        }
 
+        const bg = this.bgFrame;
+        const visited = this.visited;
+        for (let i = 0; i < size; i++) visited[i] = 0;
+
+        // Diferença contra o modelo de fundo (EMA), não contra o quadro anterior.
+        // Isso ignora mudanças lentas de iluminação (nuvens, lâmpadas).
+        const changed = new Uint8Array(size);
+        let anyChanged = 0;
         for (let i = 0; i < size; i++) {
-            const diff = Math.abs(curr[i] - prev[i]);
+            const d = curr[i] - bg[i];
+            const diff = d < 0 ? -d : d;
             if (diff > sensitivity) {
-                changedCount++;
-                const x = i % w;
-                const y = (i / w) | 0;
-                if (x < minX) minX = x;
-                if (x > maxX) maxX = x;
-                if (y < minY) minY = y;
-                if (y > maxY) maxY = y;
+                changed[i] = 1;
+                anyChanged = 1;
             }
         }
 
-        if (changedCount < minArea) {
-            return { valid: false, area: changedCount };
+        if (!anyChanged) {
+            for (let i = 0; i < size; i++) {
+                bg[i] = (alpha * bg[i] + (1 - alpha) * curr[i]) | 0;
+            }
+            return { valid: false, area: 0 };
         }
 
-        const boxW = maxX - minX + 1;
-        const boxH = maxY - minY + 1;
+        // Connected components (4-conectados): fica com o MAIOR blob, ignorando
+        // ruído disperso e mudanças pontuais de fundo.
+        let bestArea = 0;
+        let bestMinX = w, bestMinY = h, bestMaxX = 0, bestMaxY = 0;
+        const queue = [];
+
+        for (let seed = 0; seed < size; seed++) {
+            if (!changed[seed] || visited[seed]) continue;
+            let area = 0, minX = w, minY = h, maxX = 0, maxY = 0;
+            queue.length = 0;
+            queue.push(seed);
+            visited[seed] = 1;
+            let qi = 0;
+            while (qi < queue.length) {
+                const ci = queue[qi++];
+                const cx = ci % w;
+                const cy = (ci / w) | 0;
+                area++;
+                if (cx < minX) minX = cx;
+                if (cx > maxX) maxX = cx;
+                if (cy < minY) minY = cy;
+                if (cy > maxY) maxY = cy;
+                if (cx > 0) {
+                    const ni = ci - 1; if (changed[ni] && !visited[ni]) { visited[ni] = 1; queue.push(ni); }
+                }
+                if (cx < w - 1) {
+                    const ni = ci + 1; if (changed[ni] && !visited[ni]) { visited[ni] = 1; queue.push(ni); }
+                }
+                if (cy > 0) {
+                    const ni = ci - w; if (changed[ni] && !visited[ni]) { visited[ni] = 1; queue.push(ni); }
+                }
+                if (cy < h - 1) {
+                    const ni = ci + w; if (changed[ni] && !visited[ni]) { visited[ni] = 1; queue.push(ni); }
+                }
+            }
+            if (area > bestArea) {
+                bestArea = area;
+                bestMinX = minX; bestMinY = minY; bestMaxX = maxX; bestMaxY = maxY;
+            }
+        }
+
+        if (bestArea < minArea) {
+            for (let i = 0; i < size; i++) {
+                bg[i] = (alpha * bg[i] + (1 - alpha) * curr[i]) | 0;
+            }
+            return { valid: false, area: bestArea };
+        }
+
+        const boxW = bestMaxX - bestMinX + 1;
+        const boxH = bestMaxY - bestMinY + 1;
+
+        // Adapta o fundo à iluminação lenta (EMA)
+        for (let i = 0; i < size; i++) {
+            bg[i] = (alpha * bg[i] + (1 - alpha) * curr[i]) | 0;
+        }
 
         return {
             valid: true,
-            x: minX,
-            y: minY,
+            x: bestMinX,
+            y: bestMinY,
             width: boxW,
             height: boxH,
-            area: changedCount,
-            centerX: minX + boxW / 2,
-            centerY: minY + boxH / 2
+            area: bestArea,
+            centerX: bestMinX + boxW / 2,
+            centerY: bestMinY + boxH / 2
         };
     },
 
-    handleMotion(motion) {
+    handleMotion(motion, now) {
         const box = document.getElementById('motion-box');
         const statusMotion = document.getElementById('status-motion');
         const statusCoords = document.getElementById('status-coords');
@@ -375,11 +466,29 @@ const sim = {
         const infoError = document.getElementById('info-error');
 
         if (!motion.valid) {
+            this.missCount++;
+            // So solta o alvo apos miss_frames quadros sem detecçăo.
+            // Um frame perdido (ruizo/iluminaçăo) nao reseta o centro de referencia.
+            if (this.missCount >= this.config.miss_frames) {
+                this.targetLocked = false;
+                this.inDeadZone = false;
+                this.stopMotor();
+                this.smoothErrorX = 0;
+            }
             box.style.display = 'none';
             statusMotion.textContent = 'Não';
             statusCoords.textContent = '—';
             this.resetDirectionVisual(arrow, zoneBar, infoPosX, infoError);
             return;
+        }
+
+        this.missCount = 0;
+        // Se ainda nao travamos um alvo, travamos neste maior blob (unico alvo)
+        // e fixa o centro de referencia na posicao onde ele esta.
+        if (!this.targetLocked) {
+            this.targetLocked = true;
+            this.smoothErrorX = 0;
+            this.refCenterX = realCenterX;
         }
 
         // Mapeia coordenadas da resolução de detecção para o tamanho real do vídeo
@@ -410,20 +519,24 @@ const sim = {
         const errorX = realCenterX - centerImage;
         const percentX = (errorX / centerImage) * 100;
 
+        // Filtro temporal do erro (EMA): remove jitter quadro-a-quadro
+        const a = this.config.ema_alpha_err;
+        this.smoothErrorX = a * this.smoothErrorX + (1 - a) * errorX;
+
         // Posiciona a seta visual (0% = esquerda, 50% = centro, 100% = direita)
-        const arrowLeftPercent = 50 + (percentX / 2);
+        const arrowLeftPercent = 50 + ((this.smoothErrorX / centerImage) * 100) / 2;
         arrow.style.left = arrowLeftPercent + '%';
 
         // Posiciona a barra de zona morta
-        const zoneLeftPercent = 50 + (percentX / 2);
+        const zoneLeftPercent = 50 + ((this.smoothErrorX / centerImage) * 100) / 2;
         zoneBar.style.left = zoneLeftPercent + '%';
 
-        // Cores baseadas na direção
-        if (Math.abs(errorX) <= this.config.dead_zone) {
+        // Cores baseadas na direção (usa erro suavizado)
+        if (Math.abs(this.smoothErrorX) <= this.config.dead_zone) {
             arrow.style.borderTopColor = varCss('--color-success');
             infoPosX.style.color = varCss('--color-success');
             infoError.style.color = varCss('--color-success');
-        } else if (errorX < 0) {
+        } else if (this.smoothErrorX < 0) {
             arrow.style.borderTopColor = varCss('--color-info');
             infoPosX.style.color = varCss('--color-info');
             infoError.style.color = varCss('--color-info');
@@ -435,11 +548,11 @@ const sim = {
 
         // Atualiza valores numéricos (monospace, largura fixa - sem layout shift)
         infoPosX.textContent = Math.round(realCenterX);
-        infoError.textContent = Math.round(errorX) + ' px';
+        infoError.textContent = Math.round(this.smoothErrorX) + ' px';
 
         // Aciona motor apenas se rastreamento automático estiver ativo
         if (this.config.auto_tracking) {
-            this.doTracking(realCenterX);
+            this.doTracking(realCenterX, now);
         }
     },
 
@@ -453,29 +566,56 @@ const sim = {
         infoError.style.color = varCss('--color-text-muted');
     },
 
-    doTracking(centerX) {
-        const now = Date.now();
-        const centerImage = this.frameWidth / 2;
-        const errorX = centerX - centerImage;
+    doTracking(centerX, now) {
+        now = now || Date.now();
+        const halfW = this.config.trackWindowW / 2;
+        const err = centerX - this.refCenterX; // erro em relacao ao centro de referencia movel
+        const absErr = Math.abs(err);
 
-        if (Math.abs(errorX) <= this.config.dead_zone) {
+        // Histerese na janela de rastreamento: se ja estamos dentro, so sai quando
+        // o objeto deixa completamente a janela (halfW * dead_zone_hyst).
+        if (this.inDeadZone) {
+            if (absErr <= halfW * this.config.dead_zone_hyst) {
+                // Desliza suavemente o centro de referencia para onde o objeto parou
+                this.refCenterX = this.refCenterX + (centerX - this.refCenterX) * this.config.refAlpha;
+                this.stopMotor();
+                return;
+            }
+            this.inDeadZone = false;
+        }
+
+        if (absErr <= halfW) {
+            this.inDeadZone = true;
+            this.refCenterX = this.refCenterX + (centerX - this.refCenterX) * this.config.refAlpha;
             this.stopMotor();
             return;
         }
 
-        if (now - this.lastMoveTime < (this.config.stabilization_ms || 300)) {
-            return;
-        }
+        if (!this.targetLocked) return;
 
-        const dir = errorX < 0 ? 'esquerda' : 'direita';
-        const duration = this.config.step_duration_ms || 150;
+        // Fora da janela: motor se move para trazer o objeto de volta ao centro da janela.
+        // O erro efetivo e somente o que excede a metade da janela (dead zone),
+        // para nao mover quando o objeto esta dentro da zona de tolerancia.
+        const effectiveError = absErr - halfW;
 
-        this.activateMotor(dir, duration);
-        this.lastMoveTime = now;
+        // Controle proporcional: erro maior = movimento mais longo e PWM mais alto.
+        // Desacelera naturalmente ao se aproximar do centro da janela.
+        let duration = this.config.kp_x * effectiveError;
+        duration = Math.min(this.config.move_max_ms,
+            Math.max(this.config.move_min_ms, duration));
+
+        let pwm = this.config.pwm_kp * effectiveError;
+        pwm = Math.min(this.config.pwm_max, Math.max(this.config.pwm_min, pwm));
+
+        const dir = err < 0 ? 'esquerda' : 'direita';
+        this.activateMotor(dir, duration, pwm);
+        // Suprime detecçăo enquanto o motor se move e durante o ajuste:
+        // o fundo inteiro se desloca com a câmera (ego-movimento).
+        this.settleUntil = now + duration + this.config.settle_ms;
     },
 
     // ============ MOTOR (simulado) ============
-    activateMotor(dir, durationMs) {
+    activateMotor(dir, durationMs, pwm = this.config.pwm_max) {
         const status = document.getElementById('status-motor');
         const msg = document.getElementById('msg-result');
 

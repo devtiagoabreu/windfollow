@@ -45,6 +45,20 @@ bool ConfigManager::loadFromPrefs() {
     _config.step_duration_ms = prefs.getInt("step_duration_ms", 150);
     _config.stabilization_ms = prefs.getInt("stabilization_ms", 300);
     _config.auto_tracking = prefs.getBool("auto_tracking", false);
+    _config.kp_x = prefs.getFloat("kp_x", 2.5f);
+    _config.move_min_ms = prefs.getInt("move_min_ms", 40);
+    _config.move_max_ms = prefs.getInt("move_max_ms", 400);
+    _config.settle_ms = prefs.getInt("settle_ms", 300);
+    _config.ema_alpha_err = prefs.getFloat("ema_alpha_err", 0.7f);
+    _config.miss_frames = prefs.getInt("miss_frames", 8);
+    _config.bg_alpha = prefs.getFloat("bg_alpha", 0.95f);
+    _config.pwm_kp = prefs.getFloat("pwm_kp", 1.2f);
+    _config.pwm_min = prefs.getInt("pwm_min", 90);
+    _config.pwm_max = prefs.getInt("pwm_max", 200);
+    _config.dead_zone_hyst = prefs.getFloat("dead_zone_hyst", 1.5f);
+    _config.trackWindowW = prefs.getInt("trackWindowW", 25);
+    _config.trackWindowH = prefs.getInt("trackWindowH", 25);
+    _config.refAlpha = prefs.getFloat("refAlpha", 0.15f);
     return true;
 }
 
@@ -72,6 +86,20 @@ bool ConfigManager::saveConfig(const HardwareConfig& config) {
     prefs.putInt("step_duration_ms", config.step_duration_ms);
     prefs.putInt("stabilization_ms", config.stabilization_ms);
     prefs.putBool("auto_tracking", config.auto_tracking);
+    prefs.putFloat("kp_x", config.kp_x);
+    prefs.putInt("move_min_ms", config.move_min_ms);
+    prefs.putInt("move_max_ms", config.move_max_ms);
+    prefs.putInt("settle_ms", config.settle_ms);
+    prefs.putFloat("ema_alpha_err", config.ema_alpha_err);
+    prefs.putInt("miss_frames", config.miss_frames);
+    prefs.putFloat("bg_alpha", config.bg_alpha);
+    prefs.putFloat("pwm_kp", config.pwm_kp);
+    prefs.putInt("pwm_min", config.pwm_min);
+    prefs.putInt("pwm_max", config.pwm_max);
+    prefs.putFloat("dead_zone_hyst", config.dead_zone_hyst);
+    prefs.putInt("trackWindowW", config.trackWindowW);
+    prefs.putInt("trackWindowH", config.trackWindowH);
+    prefs.putFloat("refAlpha", config.refAlpha);
     _config = config;
     prefs.end();
     return true;

@@ -83,3 +83,62 @@ powershell -ExecutionPolicy Bypass -File tools/generate_web_assets.ps1
 - Tensão nominal, corrente e corrente de partida do motorredutor
 - Fonte de alimentação separada para o motor (GND comum)
 - Limites mecânicos / fins de curso
+
+---
+
+# WindFollowBlind (subprojeto — sem câmera)
+
+Pasta `firmware/windflollowblind/` e `simulator/windflollowblind/`.
+
+Controle de **2 motores DC via L298N** + **2 botões NA** em um ESP32 DevKit (não usa a T-SIMCAM nem câmera). Cada botão avança seu próprio motor pela sequência: esquerda → parado → direita → parado → repete. Mantém a mesma interface web (dashboard, configuração de GPIOs, Wi-Fi AP/mDNS) do WindFollow, removendo apenas a parte de câmera e rastreamento por movimento.
+
+## Hardware (do docs/documentacao_hardware_esp32_l298n.md)
+
+| Componente | GPIO | Função |
+|------------|------|--------|
+| Motor 1 IN1 | 26 | Sentido 1 do motor 1 |
+| Motor 1 IN2 | 25 | Sentido 2 do motor 1 |
+| Motor 1 ENA | jumper | Habilitação (sem PWM) |
+| Motor 2 IN3 | 32 | Sentido 1 do motor 2 |
+| Motor 2 IN4 | 33 | Sentido 2 do motor 2 |
+| Motor 2 ENB | jumper | Habilitação (sem PWM) |
+| Botão 1 | 27 | Avança sequência do motor 1 |
+| Botão 2 | 14 | Avança sequência do motor 2 |
+
+## Sequência por botão
+
+| Toque | Motor |
+|-------|-------|
+| 1 | Gira para a esquerda |
+| 2 | Para |
+| 3 | Gira para a direita |
+| 4 | Para |
+| 5 | Reinicia a sequência (esquerda) |
+
+## Rede e interface
+
+- AP: `WindFollowBlind-Setup` / senha `windfollow123`, IP `192.168.4.1`
+- mDNS: `http://windflollowblind.local`
+- Interface web embarcada (sem câmera): dashboard de motores, configuração de GPIOs, setup Wi-Fi
+
+## Simulador
+
+Abra `simulator/windflollowblind/index.html` no navegador para simular os 2 motores e a interface sem ESP32.
+
+## Firmware (ESP32 DevKit via Arduino IDE)
+
+FQBN: `esp32:esp32:esp32`
+
+```text
+arduino-cli compile --fqbn "esp32:esp32:esp32" --build-path "%TEMP%\wf-blind-build" firmware/windflollowblind
+arduino-cli upload -p COM6 --fqbn "esp32:esp32:esp32" --input-dir "%TEMP%\wf-blind-build"
+```
+
+Antes de regenerar o firmware após editar `firmware/windflollowblind/web/`, rode:
+
+```text
+powershell -ExecutionPolicy Bypass -File tools/generate_web_assets.ps1 -WebDir "firmware/windflollowblind/web" -OutFile "firmware/windflollowblind/WebAssets.h"
+```
+
+Comandos pela serial (115200): `i` status, `r` reinicia, `1` motor1 esquerda, `2` motor1 direita, `3` motor2 esquerda, `4` motor2 direita, `0` parar tudo.
+

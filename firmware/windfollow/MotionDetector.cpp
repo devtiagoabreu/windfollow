@@ -1,61 +1,135 @@
 #include "MotionDetector.h"
 
 bool MotionDetector::begin(int width, int height) {
-    _prevWidth = width;
-    _prevHeight = height;
-    size_t size = (size_t)width * (size_t)height;
-    _previousFrame = (uint8_t*)malloc(size);
-    if (_previousFrame) {
-        memset(_previousFrame, 0, size);
-        _hasPrevious = true;
+    _width = width;
+    _height = height;
+    _size = (size_t)width * (size_t)height;
+
+    free(_bgFrame);
+    free(_visited);
+    free(_changed);
+    free(_queue);
+
+    _bgFrame = (uint8_t*)malloc(_size);
+    _visited = (uint8_t*)malloc(_size);
+    _changed = (uint8_t*)malloc(_size);
+    _queue = (uint16_t*)malloc(_size * sizeof(uint16_t));
+
+    if (_bgFrame && _visited && _changed && _queue) {
+        memset(_bgFrame, 0, _size);
+        memset(_visited, 0, _size);
+        memset(_changed, 0, _size);
+        _hasPrevious = false;
+        return true;
     }
-    return _previousFrame != nullptr;
+    _hasPrevious = false;
+    return false;
 }
 
-MotionRegion MotionDetector::detect(uint8_t* currentFrame, uint8_t* previousFrame, int width, int height, int sensitivity, int minArea) {
+MotionRegion MotionDetector::detect(uint8_t* currentFrame, int width, int height,
+                                    int sensitivity, int minArea, float bg_alpha) {
     MotionRegion result;
     result.valid = false;
 
-    if (!currentFrame || !previousFrame || width <= 0 || height <= 0) {
+    if (!currentFrame || width <= 0 || height <= 0) return result;
+
+    size_t size = (size_t)width * (size_t)height;
+    if (!_bgFrame || _size != size) return result;
+
+    // Primeiro frame: apenas inicializa o modelo de fundo
+    if (!_hasPrevious) {
+        memcpy(_bgFrame, currentFrame, size);
+        _hasPrevious = true;
         return result;
     }
 
-    size_t size = (size_t)width * (size_t)height;
-    int maxArea = 0;
-    int bestX = 0, bestY = 0, bestW = 0, bestH = 0;
+    const uint8_t* bg = _bgFrame;
+    uint8_t* changed = _changed;
+    uint8_t* visited = _visited;
+    for (size_t i = 0; i < size; i++) visited[i] = 0;
 
-    // Simple threshold difference + bounding box of changed pixels
-    int minX = width, minY = height, maxX = 0, maxY = 0;
-    int changedCount = 0;
-
+    // Diferença contra o modelo de fundo (EMA), não contra o quadro anterior.
+    // Ignora mudanças lentas de iluminação (nuvens, lâmpadas).
     for (size_t i = 0; i < size; i++) {
-        int diff = abs((int)currentFrame[i] - (int)previousFrame[i]);
-        if (diff > sensitivity) {
-            changedCount++;
-            int px = (int)(i % width);
-            int py = (int)(i / width);
-            if (px < minX) minX = px;
-            if (px > maxX) maxX = px;
-            if (py < minY) minY = py;
-            if (py > maxY) maxY = py;
+        int d = (int)currentFrame[i] - (int)bg[i];
+        int diff = d < 0 ? -d : d;
+        changed[i] = (diff > sensitivity) ? 1 : 0;
+    }
+
+    // Connected components (4-conectados): fica com o MAIOR blob, ignorando
+    // ruído disperso e mudanças pontuais de fundo.
+    int bestArea = 0;
+    int bestMinX = width, bestMinY = height, bestMaxX = 0, bestMaxY = 0;
+    uint16_t* queue = _queue;
+
+    for (int seed = 0; seed < (int)size; seed++) {
+        if (!changed[seed] || visited[seed]) continue;
+
+        int area = 0, minX = width, minY = height, maxX = 0, maxY = 0;
+        int qhead = 0, qtail = 0;
+        queue[qtail++] = (uint16_t)seed;
+        visited[seed] = 1;
+
+        while (qhead < qtail) {
+            int ci = queue[qhead++];
+            int cx = ci % width;
+            int cy = ci / width;
+            area++;
+            if (cx < minX) minX = cx;
+            if (cx > maxX) maxX = cx;
+            if (cy < minY) minY = cy;
+            if (cy > maxY) maxY = cy;
+
+            // 4 vizinhos (sem wrap-around nas bordas)
+            if (cx > 0) {
+                int ni = ci - 1;
+                if (changed[ni] && !visited[ni]) { visited[ni] = 1; queue[qtail++] = (uint16_t)ni; }
+            }
+            if (cx < width - 1) {
+                int ni = ci + 1;
+                if (changed[ni] && !visited[ni]) { visited[ni] = 1; queue[qtail++] = (uint16_t)ni; }
+            }
+            if (cy > 0) {
+                int ni = ci - width;
+                if (changed[ni] && !visited[ni]) { visited[ni] = 1; queue[qtail++] = (uint16_t)ni; }
+            }
+            if (cy < height - 1) {
+                int ni = ci + width;
+                if (changed[ni] && !visited[ni]) { visited[ni] = 1; queue[qtail++] = (uint16_t)ni; }
+            }
+        }
+
+        if (area > bestArea) {
+            bestArea = area;
+            bestMinX = minX; bestMinY = minY; bestMaxX = maxX; bestMaxY = maxY;
         }
     }
 
-    if (changedCount < minArea) {
+    if (bestArea < minArea) {
+        // Ainda atualiza o fundo para se adaptar à iluminação
+        for (size_t i = 0; i < size; i++) {
+            _bgFrame[i] = (uint8_t)((bg_alpha * (float)_bgFrame[i] +
+                                     (1.0f - bg_alpha) * (float)currentFrame[i]) + 0.5f);
+        }
         return result;
     }
 
-    int w = maxX - minX + 1;
-    int h = maxY - minY + 1;
-    int area = w * h;
+    int boxW = bestMaxX - bestMinX + 1;
+    int boxH = bestMaxY - bestMinY + 1;
 
-    result.x = minX;
-    result.y = minY;
-    result.width = w;
-    result.height = h;
-    result.area = changedCount;
-    result.centerX = minX + w / 2;
-    result.centerY = minY + h / 2;
+    // Adapta o fundo à iluminação lenta (EMA)
+    for (size_t i = 0; i < size; i++) {
+        _bgFrame[i] = (uint8_t)((bg_alpha * (float)_bgFrame[i] +
+                                 (1.0f - bg_alpha) * (float)currentFrame[i]) + 0.5f);
+    }
+
+    result.x = bestMinX;
+    result.y = bestMinY;
+    result.width = boxW;
+    result.height = boxH;
+    result.area = bestArea;
+    result.centerX = bestMinX + boxW / 2;
+    result.centerY = bestMinY + boxH / 2;
     result.valid = true;
 
     return result;

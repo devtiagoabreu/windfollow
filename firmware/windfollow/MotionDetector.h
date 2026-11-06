@@ -17,13 +17,23 @@ struct MotionRegion {
 class MotionDetector {
 public:
     bool begin(int width, int height);
-    MotionRegion detect(uint8_t* currentFrame, uint8_t* previousFrame, int width, int height, int sensitivity, int minArea);
+
+    // Diferença contra um modelo de fundo (EMA) + connected components (4-conectados).
+    // Retorna o MAIOR blob acima de min_area, com centroide. Usa bg_alpha para
+    // adaptar o fundo a mudanças lentas de iluminação.
+    MotionRegion detect(uint8_t* currentFrame, int width, int height,
+                        int sensitivity, int minArea, float bg_alpha);
+
     bool hasPrevious() const;
 
 private:
-    uint8_t* _previousFrame = nullptr;
-    int _prevWidth = 0;
-    int _prevHeight = 0;
+    uint8_t* _bgFrame = nullptr;   // modelo de fundo (EMA)
+    uint8_t* _visited = nullptr;   // visita para connected components
+    uint8_t* _changed = nullptr;   // mascara de pixels alterados
+    uint16_t* _queue = nullptr;    // fila para BFS (indices cabem em uint16_t)
+    int _width = 0;
+    int _height = 0;
+    size_t _size = 0;
     bool _hasPrevious = false;
 };
 
