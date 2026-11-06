@@ -1,24 +1,21 @@
-// WindFollowBlind Simulador / Interface Web (sem camera)
-// Controle de 2 motores DC via L298N + configuracao Wi-Fi igual ao WindFollow.
+// WindFollowBlind Interface Web (sem camera)
+// Controle de 2 motores DC via L298N + configuracao Wi-Fi.
+// Tela inicial: controle remoto mobile first.
 
 const sim = {
-    // Estado da interface
-    stream: null,
-    cameraActive: false,
-
-    // Estado Wi-Fi simulado/persistido
+    // Estado Wi-Fi
     wifi: {
         configured: false,
-        mode: 'AP', // 'AP' ou 'STA'
+        mode: 'AP',
         ssid: 'WindFollowBlind-Setup',
         password: '',
         localIp: '192.168.4.1',
-        mdns: 'windflollowblind.local',
+        mdns: 'windfollowblind.local',
         connectedNetwork: null,
         signalStrength: 0
     },
 
-    // Redes simuladas para scan (no ESP real isso vem do WiFi.scanNetworks())
+    // Redes simuladas para scan
     availableNetworks: [
         { ssid: 'Casa_WiFi', rssi: -45 },
         { ssid: 'Vizinho_2G', rssi: -68 },
@@ -27,7 +24,7 @@ const sim = {
         { ssid: 'WiFi_Livre', rssi: -80 }
     ],
 
-    // Configuracao de hardware (padrao ESP32 + L298N + 2 motores)
+    // Configuracao de hardware
     config: {
         gpio_in1: 26,
         gpio_in2: 25,
@@ -66,7 +63,7 @@ const sim = {
         this.setupForm();
         this.updateStatus();
 
-        // Atualizacao periodica do status (motor + wifi)
+        // Atualizacao periodica do status
         setInterval(() => {
             this.updateStatus();
         }, 1000);
@@ -130,7 +127,7 @@ const sim = {
     },
 
     setupTabs() {
-        document.querySelectorAll('.tab').forEach(tab => {
+        document.querySelectorAll('.nav-item').forEach(tab => {
             tab.addEventListener('click', (e) => {
                 this.switchTab(e.currentTarget.dataset.tab, e.currentTarget);
             });
@@ -147,7 +144,7 @@ const sim = {
     },
 
     switchTab(tabId, btn) {
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(t => t.classList.remove('active'));
         if (btn) btn.classList.add('active');
         document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
         document.getElementById('tab-' + tabId).classList.add('active');
@@ -251,16 +248,19 @@ const sim = {
     // ========================================================================
     updateWifiUI() {
         const badge = document.getElementById('wifi-mode-badge');
-        const configured = this.wifi.configured;
         if (badge) {
             badge.textContent = this.wifi.mode === 'AP' ? 'Modo: Access Point (AP)' : 'Modo: Estacao (STA)';
             badge.style.background = this.wifi.mode === 'AP' ? '#2563eb' : '#16a34a';
         }
-        document.getElementById('wifi-current-ssid').textContent = configured
-            ? (this.wifi.connectedNetwork || this.wifi.ssid)
-            : this.wifi.ssid;
+        document.getElementById('wifi-current-ssid').textContent = this.wifi.ssid;
         document.getElementById('wifi-local-ip').textContent = this.wifi.localIp;
         document.getElementById('wifi-mdns').textContent = 'http://' + this.wifi.mdns + '/';
+        const modeSel = document.getElementById('wifi-mode');
+        if (modeSel) modeSel.value = this.wifi.mode;
+        const ssidIn = document.getElementById('wifi-ssid');
+        if (ssidIn) ssidIn.value = this.wifi.ssid;
+        const passIn = document.getElementById('wifi-password');
+        if (passIn) passIn.value = this.wifi.password;
     },
 
     async scanWifi() {
@@ -310,7 +310,7 @@ const sim = {
             this.updateWifiUI();
             this.showMsg(msg, `Conectado a "${ssid}"`, 'success');
             this.showMsg(document.getElementById('msg-result'),
-                'Acesse o ESP32 em: http://windflollowblind.local/ ou http://' + this.wifi.localIp, 'info');
+                'Acesse o ESP32 em: http://windfollowblind.local/ ou http://' + this.wifi.localIp, 'info');
         } catch (err) {
             this.showMsg(msg, 'Falha ao conectar: ' + err, 'error');
         } finally {
@@ -328,10 +328,19 @@ const sim = {
     // Motores
     // ========================================================================
     async motorMove(motor, direction) {
+        if (motor === '1' && !this.config.motor1_enabled) {
+            this.showMsg(document.getElementById('msg-result'), 'Motor 1 desabilitado.', 'error');
+            return;
+        }
+        if (motor === '2' && !this.config.motor2_enabled) {
+            this.showMsg(document.getElementById('msg-result'), 'Motor 2 desabilitado.', 'error');
+            return;
+        }
+
         try {
             await this.api('POST', '/api/motor/move', { motor, direction });
             this.showMsg(document.getElementById('msg-result'),
-                'Motor ' + motor + ' -> ' + direction, 'info');
+                'Motor ' + motor + ' -> ' + direction + ' (movimento continuo)', 'info');
         } catch (err) {
             this.showMsg(document.getElementById('msg-result'), 'Erro no motor: ' + err, 'error');
         }
@@ -357,12 +366,14 @@ const sim = {
         this.config.motor1_enabled = enabled;
         await this.api('POST', '/api/config', this.config);
         this.saveState();
+        if (!enabled) this.motorStop('1');
     },
 
     async toggleMotor2(enabled) {
         this.config.motor2_enabled = enabled;
         await this.api('POST', '/api/config', this.config);
         this.saveState();
+        if (!enabled) this.motorStop('2');
     },
 
     // ========================================================================
@@ -390,28 +401,27 @@ const sim = {
         const m2 = document.getElementById('status-motor2');
         const d1 = document.getElementById('status-dir1');
         const d2 = document.getElementById('status-dir2');
-        const i1 = document.getElementById('info-dir1');
-        const i2 = document.getElementById('info-dir2');
+        const p1 = document.getElementById('remote-m1-pill');
+        const p2 = document.getElementById('remote-m2-pill');
+
         if (m1) m1.textContent = this.motor.moving1 ? 'Movendo' : 'Parado';
         if (m2) m2.textContent = this.motor.moving2 ? 'Movendo' : 'Parado';
         if (d1) d1.textContent = this.motor.direction1;
         if (d2) d2.textContent = this.motor.direction2;
-        if (i1) i1.textContent = this.motor.direction1;
-        if (i2) i2.textContent = this.motor.direction2;
-        const arrow = document.getElementById('direction-arrow');
-        const zoneBar = document.getElementById('zone-bar');
-        if (arrow && zoneBar) {
-            // M1 direcao influencia a seta visual (esquerda=-50%, direita=+50%)
-            let pct = 50;
-            if (this.motor.direction1 === 'esquerda') pct = 0;
-            else if (this.motor.direction1 === 'direita') pct = 100;
-            arrow.style.left = pct + '%';
-            zoneBar.style.left = pct + '%';
+
+        // Pills de status nos motores
+        if (p1) {
+            p1.textContent = this.motor.moving1 ? this.motor.direction1 : 'Parado';
+            p1.className = 'remote-motor-pill ' + (this.motor.moving1 ? 'moving' : 'stopped');
+        }
+        if (p2) {
+            p2.textContent = this.motor.moving2 ? this.motor.direction2 : 'Parado';
+            p2.className = 'remote-motor-pill ' + (this.motor.moving2 ? 'moving' : 'stopped');
         }
     },
 
     // ========================================================================
-    // Camera (desabilitada — sem camera neste projeto)
+    // Camera (desabilitada)
     // ========================================================================
     async toggleCamera() {
         this.showMsg(document.getElementById('msg-result'),
@@ -419,7 +429,7 @@ const sim = {
     },
 
     // ========================================================================
-    // Mensagens / utilitarios
+    // Mensagens
     // ========================================================================
     showMsg(el, text, type) {
         if (!el) return;
@@ -427,15 +437,6 @@ const sim = {
         el.className = 'msg-result ' + type;
         el.style.display = 'block';
         setTimeout(() => { el.style.display = 'none'; }, 3000);
-    },
-
-    updateStatusUI() {
-        const statusEl = document.getElementById('connection-status');
-        if (statusEl) {
-            const connected = this.wifi.configured && this.wifi.mode === 'STA';
-            statusEl.textContent = connected ? 'Conectado (STA)' : 'Modo AP';
-            statusEl.className = 'status-indicator ' + (connected ? 'status-on' : 'status-off');
-        }
     }
 };
 

@@ -9,123 +9,122 @@ static const char WIND_FOLLOW_INDEX_HTML[] PROGMEM = R"WFWEB(
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WindFollowBlind - ESP32</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#282a36">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="WindFollow">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDUxMiA1MTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxkZWZzPgo8bGluZWFyR3JhZGllbnQgaWQ9ImdyYWQiIHgxPSIwJSIgeTE9IjAlIiB4Mj0oMTAwJSAqIC0yNXB4KSIgeTI9IjEwMCUiPgo8c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNiZDkzdjkiLz4KPHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjNjI3MmE0Ii8+CjwvbGluZWFyR3JhZGllbnQ+CjwvZGVmcz4KPHBhdGggZD0iTTI1NiA1MTJDMzk3LjQ1NiA1MTIgNTEyIDM5Ny40NTYgNTEyIDI1NUM1MTIgMTE0LjU0NCAzOTcuNDU2IDAgMjU2IDBDMTE0LjU0NCAwIDAgMTE0LjU0NCAwIDI1NkMwIDM5Ny40NTYgMTE0LjU0NiA1MTIgMjU2IDUxMloiIGZpbGw9InVybCgjZ3JhZCkiLz4KPGcgZmlsdGVyPSJ1cmwoI2ZpbHRlc18xXyIpIHN0cm9rZT0iIzZyNzI3NCIgc3Ryb2tlLXdpZHRoPSIyNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj4KPGcgZmlsdGVyPSJ1cmwoI2ZpbHRlc18yXyIpPgo8cGF0aCBkPSJNMjU2IDEwNC41NDRDMTc5LjQ1NiAxMDQuNTQ0IDEyMS41NDQgMTYyLjQ1NiAxMjEuNTQ0IDIzOS4wMDBDMTIxLjU0NCAzMTUuNTQ0IDE3OS40NTYgMzcyLjQ1NiAyNTYgMzcyLjQ1NkMzMzIuNTQ0IDM3Mi40NTYgMzkwLjQ1NiAzMTUuNTQ0IDM5MC40NTYgMjM5LjAwMEMzOTAuNDU2IDE2Mi40NTYgMzMyLjU0NiAxMDQuNTQ0IDI1NiAxMDQuNTQ0WiIgZmlsdGVyPSJ1cmwoI2ZpbHRlc18zXykiLz4KPC9nPgo8L2c+Cjwvc3ZnPg==">
+    <title>WindFollow — Controle Remoto</title>
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
     <div id="app">
-        <header>
-            <h1>WindFollowBlind</h1>
-            <div class="header-actions">
+        <!-- ===== TELA INICIAL: CONTROLE REMOTO (mobile first) ===== -->
+        <header class="remote-header">
+            <div class="remote-brand">
+                <svg class="wind-logo" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L15 9H9L12 2Z" fill="#bd93f9"/>
+                    <path d="M12 22L15 15H9L12 22Z" fill="#ff79c6"/>
+                    <path d="M3 12C3 6.477 6.477 3 12 3S21 6.477 21 12S6.477 21 12 21S3 17.523 3 12Z" fill="none" stroke="#bd93f9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M12 3L12 21" stroke="#ff79c6" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M3 12L21 12" stroke="#bd93f9" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <span class="brand-name">Wind<span class="brand-accent">Follow</span></span>
+                <span class="brand-sub">Controle Remoto • L298N</span>
+            </div>
+            <div class="remote-header-actions">
                 <label class="theme-switch">
                     <input type="checkbox" id="theme-toggle" onchange="sim.toggleTheme()">
                     <span class="theme-slider"></span>
                 </label>
-                <div id="connection-status" class="status-indicator status-off">Conectando...</div>
+                <div id="connection-status" class="status-indicator status-off">Desconectado</div>
             </div>
         </header>
 
-        <!-- Abas principais -->
-        <nav class="tabs" id="main-tabs">
-            <button class="tab active" data-tab="dashboard" onclick="sim.switchTab('dashboard', this)">
-                <span class="tab-icon">📺</span> Painel de Controle
-            </button>
-            <button class="tab" data-tab="devices" onclick="sim.switchTab('devices', this)">
-                <span class="tab-icon">⚙️</span> Configuração de Dispositivos
-            </button>
-            <button class="tab" data-tab="wifi" onclick="sim.switchTab('wifi', this)">
-                <span class="tab-icon">📶</span> Configuração Wi-Fi
-            </button>
-        </nav>
-
         <main id="content">
-            <!-- Aba: Painel de Controle -->
-            <section id="tab-dashboard" class="tab-panel active">
-                <div class="card">
-                    <h2>Motores (L298N)</h2>
-                    <div class="status-grid">
-                        <div class="status-item">
-                            <span class="label">Wi-Fi</span>
-                            <span class="value" id="status-wifi">Modo AP</span>
+            <!-- Aba: Controle Remoto (inicial) -->
+            <section id="tab-remote" class="tab-panel active">
+                <div class="remote-card">
+                    <div class="remote-status-grid">
+                        <div class="remote-status-item">
+                            <span class="remote-label">Wi-Fi</span>
+                            <span class="remote-value" id="remote-status-wifi">AP</span>
                         </div>
-                        <div class="status-item">
-                            <span class="label">Modo</span>
-                            <span class="value" id="status-mode">Idle</span>
+                        <div class="remote-status-item">
+                            <span class="remote-label">Motor 1</span>
+                            <span class="remote-value" id="remote-status-m1">Parado</span>
                         </div>
-                        <div class="status-item">
-                            <span class="label">Motor 1</span>
-                            <span class="value" id="status-motor1">Parado</span>
-                        </div>
-                        <div class="status-item">
-                            <span class="label">Motor 2</span>
-                            <span class="value" id="status-motor2">Parado</span>
-                        </div>
-                        <div class="status-item">
-                            <span class="label">Direção M1</span>
-                            <span class="value" id="status-dir1">—</span>
-                        </div>
-                        <div class="status-item">
-                            <span class="label">Direção M2</span>
-                            <span class="value" id="status-dir2">—</span>
+                        <div class="remote-status-item">
+                            <span class="remote-label">Motor 2</span>
+                            <span class="remote-value" id="remote-status-m2">Parado</span>
                         </div>
                     </div>
 
-                    <!-- Indicador visual de direção -->
-                    <div class="direction-card">
-                        <h3>Direção dos Motores</h3>
-                        <div class="direction-visual">
-                            <div class="direction-center"></div>
-                            <div class="direction-arrow" id="direction-arrow"></div>
-                            <div class="direction-labels">
-                                <span class="dir-label dir-left">Esquerda</span>
-                                <span class="dir-label dir-center">Centro</span>
-                                <span class="dir-label dir-right">Direita</span>
+                    <div class="remote-controls">
+                        <!-- Motor 1 -->
+                        <div class="remote-motor">
+                            <div class="remote-motor-header">
+                                <span class="remote-motor-title">Motor 1</span>
+                                <span class="remote-motor-pill" id="remote-m1-pill">Parado</span>
+                            </div>
+                            <div class="remote-motor-btns">
+                                <button class="remote-btn remote-btn-lg remote-btn-left" onclick="sim.motorMove('1','esquerda')">
+                                    <span class="btn-arrow">◀</span>
+                                    <span class="btn-label">Esquerda</span>
+                                </button>
+                                <button class="remote-btn remote-btn-lg remote-btn-stop" onclick="sim.motorStop('1')">
+                                    <span class="btn-icon">⏹</span>
+                                    <span class="btn-label">Parar</span>
+                                </button>
+                                <button class="remote-btn remote-btn-lg remote-btn-right" onclick="sim.motorMove('1','direita')">
+                                    <span class="btn-label">Direita</span>
+                                    <span class="btn-arrow">▶</span>
+                                </button>
                             </div>
                         </div>
-                        <div class="direction-zone">
-                            <div class="zone-bar" id="zone-bar"></div>
+
+                        <!-- Motor 2 -->
+                        <div class="remote-motor">
+                            <div class="remote-motor-header">
+                                <span class="remote-motor-title">Motor 2</span>
+                                <span class="remote-motor-pill" id="remote-m2-pill">Parado</span>
+                            </div>
+                            <div class="remote-motor-btns">
+                                <button class="remote-btn remote-btn-lg remote-btn-left" onclick="sim.motorMove('2','esquerda')">
+                                    <span class="btn-arrow">◀</span>
+                                    <span class="btn-label">Esquerda</span>
+                                </button>
+                                <button class="remote-btn remote-btn-lg remote-btn-stop" onclick="sim.motorStop('2')">
+                                    <span class="btn-icon">⏹</span>
+                                    <span class="btn-label">Parar</span>
+                                </button>
+                                <button class="remote-btn remote-btn-lg remote-btn-right" onclick="sim.motorMove('2','direita')">
+                                    <span class="btn-label">Direita</span>
+                                    <span class="btn-arrow">▶</span>
+                                </button>
+                            </div>
                         </div>
-                        <div class="direction-info">
-                            <span class="info-label">M1:</span>
-                            <span class="info-value" id="info-dir1">—</span>
-                            <span class="info-label">M2:</span>
-                            <span class="info-value" id="info-dir2">—</span>
+
+                        <!-- Parar Todos -->
+                        <div class="remote-motor remote-motor-all">
+                            <div class="remote-motor-header">
+                                <span class="remote-motor-title">Todos</span>
+                                <span class="remote-motor-pill remote-motor-pill-all">Parados</span>
+                            </div>
+                            <div class="remote-motor-btns">
+                                <button class="remote-btn remote-btn-lg remote-btn-stop remote-btn-stop-all" onclick="sim.motorStop()">
+                                    <span class="btn-icon">⏹</span>
+                                    <span class="btn-label">Parar Todos</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="card controls-card">
-                    <h2>Controles Manuais</h2>
-                    <div class="btn-group">
-                        <h4>Motor 1</h4>
-                        <button class="btn btn-primary" onclick="sim.motorMove('1','esquerda')">Esquerda</button>
-                        <button class="btn btn-danger" onclick="sim.motorStop('1')">Parar</button>
-                        <button class="btn btn-primary" onclick="sim.motorMove('1','direita')">Direita</button>
-                    </div>
-                    <div class="btn-group">
-                        <h4>Motor 2</h4>
-                        <button class="btn btn-primary" onclick="sim.motorMove('2','esquerda')">Esquerda</button>
-                        <button class="btn btn-danger" onclick="sim.motorStop('2')">Parar</button>
-                        <button class="btn btn-primary" onclick="sim.motorMove('2','direita')">Direita</button>
-                    </div>
-                    <div class="btn-group">
-                        <button class="btn btn-danger" onclick="sim.motorStop()">Parar Todos</button>
-                    </div>
-                    <div class="control-row">
-                        <label class="toggle">
-                            <input type="checkbox" id="toggle-m1" onchange="sim.toggleMotor1(this.checked)">
-                            <span class="toggle-slider"></span>
-                            <span class="toggle-label nowrap">Motor 1 habilitado</span>
-                        </label>
-                        <label class="toggle">
-                            <input type="checkbox" id="toggle-m2" onchange="sim.toggleMotor2(this.checked)">
-                            <span class="toggle-slider"></span>
-                            <span class="toggle-label nowrap">Motor 2 habilitado</span>
-                        </label>
-                    </div>
-                    <div class="camera-hint">
-                        <p>🕷️ Sem câmera: controle direto dos 2 motores DC via L298N.</p>
-                        <p class="hint-detail">Use os botoes físicos (NA) ou o painel web para acionar cada motor.</p>
+
+                    <div class="remote-hint">
+                        <p>🕷️ Mantenha pressionado para girar continuamente. Solte ou toque <b>Parar</span> para interromper.</p>
+                        <p class="hint-detail">Motores giram continuamente até receber comando de parada.</p>
                     </div>
                 </div>
             </section>
@@ -259,7 +258,7 @@ static const char WIND_FOLLOW_INDEX_HTML[] PROGMEM = R"WFWEB(
                         <span class="badge">M1: IN1=26, IN2=25, BT1=27</span>
                         <span class="badge">M2: IN3=32, IN4=33, BT2=14</span>
                     </div>
-                    <p class="hint">Botoes NA entre o GPIO e GND. Sequencia por botao: esquerda -> parado -> direita -> parado -> repete.</p>
+                    <p class="hint">Botoes NA entre o GPIO e GND. Sequencia por botao: esquerda (contínuo) -> parado -> direita (contínuo) -> parado -> repete.</p>
                 </div>
             </section>
 
@@ -273,7 +272,7 @@ static const char WIND_FOLLOW_INDEX_HTML[] PROGMEM = R"WFWEB(
                         <div class="mode-info">
                             <strong>SSID atual:</strong> <span id="wifi-current-ssid">WindFollowBlind-Setup</span><br>
                             <strong>IP do ESP32:</strong> <span id="wifi-local-ip">192.168.4.1</span><br>
-                            <strong>mDNS local:</strong> <span id="wifi-mdns">http://windflollowblind.local/</span>
+                            <strong>mDNS local:</strong> <span id="wifi-mdns">http://windfollowblind.local/</span>
                         </div>
                     </div>
 
@@ -304,12 +303,28 @@ static const char WIND_FOLLOW_INDEX_HTML[] PROGMEM = R"WFWEB(
 
                     <div class="setup-hint">
                         <p>Depois de conectar, acesse o ESP32 pela rede local em:</p>
-                        <p><strong>http://windflollowblind.local/</strong></p>
+                        <p><strong>http://windfollowblind.local/</strong></p>
                         <p>Caso o mDNS não resolva, use o IP exibido acima.</p>
                     </div>
                 </div>
             </section>
         </main>
+
+        <!-- Navegação inferior (mobile first) -->
+        <nav class="bottom-nav">
+            <button class="nav-item active" data-tab="remote" onclick="sim.switchTab('remote', this)">
+                <span class="nav-icon">🎮</span>
+                <span class="nav-label">Controle</span>
+            </button>
+            <button class="nav-item" data-tab="devices" onclick="sim.switchTab('devices', this)">
+                <span class="nav-icon">⚙️</span>
+                <span class="nav-label">Dispositivos</span>
+            </button>
+            <button class="nav-item" data-tab="wifi" onclick="sim.switchTab('wifi', this)">
+                <span class="nav-icon">📶</span>
+                <span class="nav-label">Wi-Fi</span>
+            </button>
+        </nav>
     </div>
     <script src="/js/app.js"></script>
 </body>
@@ -1424,30 +1439,420 @@ main {
   color: var(--color-danger);
   border-color: var(--color-danger);
 }
+
+/* ===== WindFollowBlind: Controle Remoto Mobile First (Drácula) ===== */
+
+.remote-header {
+  position: relative;
+  padding: 1.5rem 1rem 1rem;
+  background: linear-gradient(135deg, var(--color-bg-elevated), var(--color-bg));
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.remote-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.wind-logo {
+  width: 48px;
+  height: 48px;
+  filter: drop-shadow(0 2px 4px rgba(189, 147, 249, 0.4));
+}
+
+.brand-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text);
+  letter-spacing: -0.5px;
+}
+
+.brand-accent {
+  color: var(--color-primary);
+}
+
+.brand-sub {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin-top: 0.1rem;
+}
+
+.remote-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-left: auto;
+}
+
+.theme-switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+}
+
+.theme-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.theme-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--color-bg-hover);
+  transition: 0.3s;
+  border-radius: 24px;
+}
+
+.theme-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+}
+
+.theme-switch input:checked + .theme-slider {
+  background-color: var(--color-primary);
+}
+
+.theme-switch input:checked + .theme-slider:before {
+  transform: translateX(20px);
+}
+
+.status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.status-indicator.status-off {
+  background: rgba(255, 85, 85, 0.15);
+  color: var(--color-danger);
+  border-color: var(--color-danger);
+}
+
+.status-indicator.status-ok {
+  background: rgba(80, 250, 123, 0.15);
+  color: var(--color-success);
+  border-color: var(--color-success);
+}
+
+/* Conteúdo principal */
+main#content {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Cards remotos */
+.remote-card {
+  background: var(--color-bg-elevated);
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--color-border);
+}
+
+.remote-status-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.remote-status-item {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 0.75rem;
+  text-align: center;
+}
+
+.remote-label {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  margin-bottom: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.remote-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.remote-value.moving { color: var(--color-success); }
+.remote-value.stopped { color: var(--color-text-muted); }
+
+/* Controles dos motores */
+.remote-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.remote-motor {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  padding: 1.25rem;
+}
+
+.remote-motor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.remote-motor-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.remote-motor-pill {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  background: var(--color-bg-hover);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+}
+
+.remote-motor-pill.moving { background: var(--color-success); color: #282a36; }
+.remote-motor-pill.stopped { background: var(--color-bg-hover); color: var(--color-text-muted); }
+
+.remote-motor-btns {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.remote-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem 0.5rem;
+  border: none;
+  border-radius: 14px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  touch-action: manipulation;
+  min-height: 64px;
+}
+
+.remote-btn:active {
+  transform: scale(0.95);
+}
+
+.remote-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.remote-btn-left {
+  background: var(--color-info);
+  color: #282a36;
+}
+
+.remote-btn-left:active {
+  background: #ff9fdb;
+}
+
+.remote-btn-right {
+  background: var(--color-primary);
+  color: #282a36;
+}
+
+.remote-btn-right:active {
+  background: #7bc7e6;
+}
+
+.remote-btn-stop {
+  background: var(--color-danger);
+  color: #282a36;
+}
+
+.remote-btn-stop:active {
+  background: #ff7777;
+}
+
+.remote-btn-stop-all {
+  background: var(--color-danger);
+  color: #282a36;
+  grid-column: 1 / -1;
+}
+
+.remote-btn .btn-arrow {
+  font-size: 1.2rem;
+}
+
+.remote-btn .btn-icon {
+  font-size: 1.5rem;
+}
+
+.remote-btn .btn-label {
+  font-size: 0.9rem;
+}
+
+.remote-motor-all .remote-motor-btns {
+  grid-template-columns: 1fr;
+}
+
+/* Aviso */
+.remote-hint {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: var(--color-bg-hover);
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+}
+
+.remote-hint p {
+  margin: 0.25rem 0;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.remote-hint .hint-detail {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  opacity: 0.8;
+}
+
+/* Navegação inferior (mobile first) */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-around;
+  padding: 0.75rem 0.5rem;
+  background: var(--color-bg-elevated);
+  border-top: 1px solid var(--color-border);
+  z-index: 100;
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  color: var(--color-text-muted);
+  font-size: 0.7rem;
+  transition: color 0.2s;
+  touch-action: manipulation;
+}
+
+.nav-item.active {
+  color: var(--color-primary);
+}
+
+.nav-icon {
+  font-size: 1.5rem;
+}
+
+.nav-label {
+  font-size: 0.65rem;
+  font-weight: 600;
+}
+
+/* Ajustes para telas maiores */
+@media (min-width: 640px) {
+  main#content {
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  .remote-header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.5rem 2rem;
+  }
+
+  .remote-header-actions {
+    margin-left: 0;
+  }
+
+  .bottom-nav {
+    bottom: env(safe-area-inset-bottom);
+    padding: 0.75rem max(env(safe-area-inset-right), 1rem);
+  }
+}
+
+/* Scrollbar customizada */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg-hover);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
 )WFWEB";
 
 static const char WIND_FOLLOW_APP_JS[] PROGMEM = R"WFWEB(
-// WindFollowBlind Simulador / Interface Web (sem camera)
-// Controle de 2 motores DC via L298N + configuracao Wi-Fi igual ao WindFollow.
+// WindFollowBlind Interface Web (sem camera)
+// Controle de 2 motores DC via L298N + configuracao Wi-Fi.
+// Tela inicial: controle remoto mobile first.
 
 const sim = {
-    // Estado da interface
-    stream: null,
-    cameraActive: false,
-
-    // Estado Wi-Fi simulado/persistido
+    // Estado Wi-Fi
     wifi: {
         configured: false,
-        mode: 'AP', // 'AP' ou 'STA'
+        mode: 'AP',
         ssid: 'WindFollowBlind-Setup',
         password: '',
         localIp: '192.168.4.1',
-        mdns: 'windflollowblind.local',
+        mdns: 'windfollowblind.local',
         connectedNetwork: null,
         signalStrength: 0
     },
 
-    // Redes simuladas para scan (no ESP real isso vem do WiFi.scanNetworks())
+    // Redes simuladas para scan
     availableNetworks: [
         { ssid: 'Casa_WiFi', rssi: -45 },
         { ssid: 'Vizinho_2G', rssi: -68 },
@@ -1456,7 +1861,7 @@ const sim = {
         { ssid: 'WiFi_Livre', rssi: -80 }
     ],
 
-    // Configuracao de hardware (padrao ESP32 + L298N + 2 motores)
+    // Configuracao de hardware
     config: {
         gpio_in1: 26,
         gpio_in2: 25,
@@ -1495,7 +1900,7 @@ const sim = {
         this.setupForm();
         this.updateStatus();
 
-        // Atualizacao periodica do status (motor + wifi)
+        // Atualizacao periodica do status
         setInterval(() => {
             this.updateStatus();
         }, 1000);
@@ -1559,7 +1964,7 @@ const sim = {
     },
 
     setupTabs() {
-        document.querySelectorAll('.tab').forEach(tab => {
+        document.querySelectorAll('.nav-item').forEach(tab => {
             tab.addEventListener('click', (e) => {
                 this.switchTab(e.currentTarget.dataset.tab, e.currentTarget);
             });
@@ -1576,7 +1981,7 @@ const sim = {
     },
 
     switchTab(tabId, btn) {
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(t => t.classList.remove('active'));
         if (btn) btn.classList.add('active');
         document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
         document.getElementById('tab-' + tabId).classList.add('active');
@@ -1680,16 +2085,19 @@ const sim = {
     // ========================================================================
     updateWifiUI() {
         const badge = document.getElementById('wifi-mode-badge');
-        const configured = this.wifi.configured;
         if (badge) {
             badge.textContent = this.wifi.mode === 'AP' ? 'Modo: Access Point (AP)' : 'Modo: Estacao (STA)';
             badge.style.background = this.wifi.mode === 'AP' ? '#2563eb' : '#16a34a';
         }
-        document.getElementById('wifi-current-ssid').textContent = configured
-            ? (this.wifi.connectedNetwork || this.wifi.ssid)
-            : this.wifi.ssid;
+        document.getElementById('wifi-current-ssid').textContent = this.wifi.ssid;
         document.getElementById('wifi-local-ip').textContent = this.wifi.localIp;
         document.getElementById('wifi-mdns').textContent = 'http://' + this.wifi.mdns + '/';
+        const modeSel = document.getElementById('wifi-mode');
+        if (modeSel) modeSel.value = this.wifi.mode;
+        const ssidIn = document.getElementById('wifi-ssid');
+        if (ssidIn) ssidIn.value = this.wifi.ssid;
+        const passIn = document.getElementById('wifi-password');
+        if (passIn) passIn.value = this.wifi.password;
     },
 
     async scanWifi() {
@@ -1739,7 +2147,7 @@ const sim = {
             this.updateWifiUI();
             this.showMsg(msg, `Conectado a "${ssid}"`, 'success');
             this.showMsg(document.getElementById('msg-result'),
-                'Acesse o ESP32 em: http://windflollowblind.local/ ou http://' + this.wifi.localIp, 'info');
+                'Acesse o ESP32 em: http://windfollowblind.local/ ou http://' + this.wifi.localIp, 'info');
         } catch (err) {
             this.showMsg(msg, 'Falha ao conectar: ' + err, 'error');
         } finally {
@@ -1757,10 +2165,19 @@ const sim = {
     // Motores
     // ========================================================================
     async motorMove(motor, direction) {
+        if (motor === '1' && !this.config.motor1_enabled) {
+            this.showMsg(document.getElementById('msg-result'), 'Motor 1 desabilitado.', 'error');
+            return;
+        }
+        if (motor === '2' && !this.config.motor2_enabled) {
+            this.showMsg(document.getElementById('msg-result'), 'Motor 2 desabilitado.', 'error');
+            return;
+        }
+
         try {
             await this.api('POST', '/api/motor/move', { motor, direction });
             this.showMsg(document.getElementById('msg-result'),
-                'Motor ' + motor + ' -> ' + direction, 'info');
+                'Motor ' + motor + ' -> ' + direction + ' (movimento continuo)', 'info');
         } catch (err) {
             this.showMsg(document.getElementById('msg-result'), 'Erro no motor: ' + err, 'error');
         }
@@ -1786,12 +2203,14 @@ const sim = {
         this.config.motor1_enabled = enabled;
         await this.api('POST', '/api/config', this.config);
         this.saveState();
+        if (!enabled) this.motorStop('1');
     },
 
     async toggleMotor2(enabled) {
         this.config.motor2_enabled = enabled;
         await this.api('POST', '/api/config', this.config);
         this.saveState();
+        if (!enabled) this.motorStop('2');
     },
 
     // ========================================================================
@@ -1819,28 +2238,27 @@ const sim = {
         const m2 = document.getElementById('status-motor2');
         const d1 = document.getElementById('status-dir1');
         const d2 = document.getElementById('status-dir2');
-        const i1 = document.getElementById('info-dir1');
-        const i2 = document.getElementById('info-dir2');
+        const p1 = document.getElementById('remote-m1-pill');
+        const p2 = document.getElementById('remote-m2-pill');
+
         if (m1) m1.textContent = this.motor.moving1 ? 'Movendo' : 'Parado';
         if (m2) m2.textContent = this.motor.moving2 ? 'Movendo' : 'Parado';
         if (d1) d1.textContent = this.motor.direction1;
         if (d2) d2.textContent = this.motor.direction2;
-        if (i1) i1.textContent = this.motor.direction1;
-        if (i2) i2.textContent = this.motor.direction2;
-        const arrow = document.getElementById('direction-arrow');
-        const zoneBar = document.getElementById('zone-bar');
-        if (arrow && zoneBar) {
-            // M1 direcao influencia a seta visual (esquerda=-50%, direita=+50%)
-            let pct = 50;
-            if (this.motor.direction1 === 'esquerda') pct = 0;
-            else if (this.motor.direction1 === 'direita') pct = 100;
-            arrow.style.left = pct + '%';
-            zoneBar.style.left = pct + '%';
+
+        // Pills de status nos motores
+        if (p1) {
+            p1.textContent = this.motor.moving1 ? this.motor.direction1 : 'Parado';
+            p1.className = 'remote-motor-pill ' + (this.motor.moving1 ? 'moving' : 'stopped');
+        }
+        if (p2) {
+            p2.textContent = this.motor.moving2 ? this.motor.direction2 : 'Parado';
+            p2.className = 'remote-motor-pill ' + (this.motor.moving2 ? 'moving' : 'stopped');
         }
     },
 
     // ========================================================================
-    // Camera (desabilitada — sem camera neste projeto)
+    // Camera (desabilitada)
     // ========================================================================
     async toggleCamera() {
         this.showMsg(document.getElementById('msg-result'),
@@ -1848,7 +2266,7 @@ const sim = {
     },
 
     // ========================================================================
-    // Mensagens / utilitarios
+    // Mensagens
     // ========================================================================
     showMsg(el, text, type) {
         if (!el) return;
@@ -1856,15 +2274,6 @@ const sim = {
         el.className = 'msg-result ' + type;
         el.style.display = 'block';
         setTimeout(() => { el.style.display = 'none'; }, 3000);
-    },
-
-    updateStatusUI() {
-        const statusEl = document.getElementById('connection-status');
-        if (statusEl) {
-            const connected = this.wifi.configured && this.wifi.mode === 'STA';
-            statusEl.textContent = connected ? 'Conectado (STA)' : 'Modo AP';
-            statusEl.className = 'status-indicator ' + (connected ? 'status-on' : 'status-off');
-        }
     }
 };
 
