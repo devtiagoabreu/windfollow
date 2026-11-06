@@ -12,29 +12,30 @@ static const char WIND_FOLLOW_INDEX_HTML[] PROGMEM = R"WFWEB(
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#282a36">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <meta name="apple-mobile-web-app-title" content="WindFollow">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="WindFollow Controle Remoto">
     <link rel="manifest" href="/manifest.json">
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDUxMiA1MTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxkZWZzPgo8bGluZWFyR3JhZGllbnQgaWQ9ImdyYWQiIHgxPSIwJSIgeTE9IjAlIiB4Mj0oMTAwJSAqIC0yNXB4KSIgeTI9IjEwMCUiPgo8c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNiZDkzdjkiLz4KPHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjNjI3MmE0Ii8+CjwvbGluZWFyR3JhZGllbnQ+CjwvZGVmcz4KPHBhdGggZD0iTTI1NiA1MTJDMzk3LjQ1NiA1MTIgNTEyIDM5Ny40NTYgNTEyIDI1NUM1MTIgMTE0LjU0NCAzOTcuNDU2IDAgMjU2IDBDMTE0LjU0NCAwIDAgMTE0LjU0NCAwIDI1NkMwIDM5Ny40NTYgMTE0LjU0NiA1MTIgMjU2IDUxMloiIGZpbGw9InVybCgjZ3JhZCkiLz4KPGcgZmlsdGVyPSJ1cmwoI2ZpbHRlc18xXyIpIHN0cm9rZT0iIzZyNzI3NCIgc3Ryb2tlLXdpZHRoPSIyNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj4KPGcgZmlsdGVyPSJ1cmwoI2ZpbHRlc18yXyIpPgo8cGF0aCBkPSJNMjU2IDEwNC41NDRDMTc5LjQ1NiAxMDQuNTQ0IDEyMS41NDQgMTYyLjQ1NiAxMjEuNTQ0IDIzOS4wMDBDMTIxLjU0NCAzMTUuNTQ0IDE3OS40NTYgMzcyLjQ1NiAyNTYgMzcyLjQ1NkMzMzIuNTQ0IDM3Mi40NTYgMzkwLjQ1NiAzMTUuNTQ0IDM5MC40NTYgMjM5LjAwMEMzOTAuNDU2IDE2Mi40NTYgMzMyLjU0NiAxMDQuNTQ0IDI1NiAxMDQuNTQ0WiIgZmlsdGVyPSJ1cmwoI2ZpbHRlc18zXykiLz4KPC9nPgo8L2c+Cjwvc3ZnPg==">
-    <title>WindFollow — Controle Remoto</title>
+    <title>WindFollow Controle Remoto</title>
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
     <div id="app">
-        <!-- ===== TELA INICIAL: CONTROLE REMOTO (mobile first) ===== -->
+        <!-- ===== HEADER: Logo pequeno + Nome ===== -->
         <header class="remote-header">
             <div class="remote-brand">
                 <svg class="wind-logo" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2L15 9H9L12 2Z" fill="#bd93f9"/>
-                    <path d="M12 22L15 15H9L12 22Z" fill="#ff79c6"/>
-                    <path d="M3 12C3 6.477 6.477 3 12 3S21 6.477 21 12S6.477 21 12 21S3 17.523 3 12Z" fill="none" stroke="#bd93f9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M12 3L12 21" stroke="#ff79c6" stroke-width="2" stroke-linecap="round"/>
-                    <path d="M3 12L21 12" stroke="#bd93f9" stroke-width="2" stroke-linecap="round"/>
+                    <!-- Simbolo de vento: tres curvas -->
+                    <path d="M4 12Q8 2 12 12" stroke="#bd93f9" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                    <path d="M4 12Q8 10 12 12" stroke="#ff79c6" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <path d="M20 12Q16 22 12 12" stroke="#50fa7b" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <circle cx="12" cy="12" r="1.5" fill="#f8f8f2"/>
                 </svg>
-                <span class="brand-name">Wind<span class="brand-accent">Follow</span></span>
-                <span class="brand-sub">Controle Remoto • L298N</span>
+                <div class="remote-title">
+                    <div class="brand-name">Wind<span class="brand-accent">Follow</span></div>
+                    <div class="brand-sub">Controle Remoto</div>
+                </div>
             </div>
-            <div class="remote-header-actions">
+            <div class="remote-header-right">
                 <label class="theme-switch">
                     <input type="checkbox" id="theme-toggle" onchange="sim.toggleTheme()">
                     <span class="theme-slider"></span>
@@ -47,84 +48,67 @@ static const char WIND_FOLLOW_INDEX_HTML[] PROGMEM = R"WFWEB(
             <!-- Aba: Controle Remoto (inicial) -->
             <section id="tab-remote" class="tab-panel active">
                 <div class="remote-card">
-                    <div class="remote-status-grid">
-                        <div class="remote-status-item">
-                            <span class="remote-label">Wi-Fi</span>
-                            <span class="remote-value" id="remote-status-wifi">AP</span>
+                    <!-- Motor 1: 3 botoes grandes ocupando largura total -->
+                    <div class="remote-motor-block">
+                        <div class="motor-label">Motor 1</div>
+                        <div class="motor-btn-row">
+                            <button class="remote-btn motor-btn-left" onclick="sim.motorMove('1','esquerda')">◀ Esquerda</button>
+                            <button class="remote-btn motor-btn-stop" onclick="sim.motorStop('1')">⏹ Parar</button>
+                            <button class="remote-btn motor-btn-right" onclick="sim.motorMove('1','direita')">Direita ▶</button>
                         </div>
-                        <div class="remote-status-item">
-                            <span class="remote-label">Motor 1</span>
-                            <span class="remote-value" id="remote-status-m1">Parado</span>
-                        </div>
-                        <div class="remote-status-item">
-                            <span class="remote-label">Motor 2</span>
-                            <span class="remote-value" id="remote-status-m2">Parado</span>
-                        </div>
+                        <div class="motor-status" id="motor1-status">Parado</div>
                     </div>
 
-                    <div class="remote-controls">
-                        <!-- Motor 1 -->
-                        <div class="remote-motor">
-                            <div class="remote-motor-header">
-                                <span class="remote-motor-title">Motor 1</span>
-                                <span class="remote-motor-pill" id="remote-m1-pill">Parado</span>
-                            </div>
-                            <div class="remote-motor-btns">
-                                <button class="remote-btn remote-btn-lg remote-btn-left" onclick="sim.motorMove('1','esquerda')">
-                                    <span class="btn-arrow">◀</span>
-                                    <span class="btn-label">Esquerda</span>
-                                </button>
-                                <button class="remote-btn remote-btn-lg remote-btn-stop" onclick="sim.motorStop('1')">
-                                    <span class="btn-icon">⏹</span>
-                                    <span class="btn-label">Parar</span>
-                                </button>
-                                <button class="remote-btn remote-btn-lg remote-btn-right" onclick="sim.motorMove('1','direita')">
-                                    <span class="btn-label">Direita</span>
-                                    <span class="btn-arrow">▶</span>
-                                </button>
-                            </div>
+                    <!-- Motor 2: 3 botoes grandes ocupando largura total -->
+                    <div class="remote-motor-block">
+                        <div class="motor-label">Motor 2</div>
+                        <div class="motor-btn-row">
+                            <button class="remote-btn motor-btn-left" onclick="sim.motorMove('2','esquerda')">◀ Esquerda</button>
+                            <button class="remote-btn motor-btn-stop" onclick="sim.motorStop('2')">⏹ Parar</button>
+                            <button class="remote-btn motor-btn-right" onclick="sim.motorMove('2','direita')">Direita ▶</button>
                         </div>
-
-                        <!-- Motor 2 -->
-                        <div class="remote-motor">
-                            <div class="remote-motor-header">
-                                <span class="remote-motor-title">Motor 2</span>
-                                <span class="remote-motor-pill" id="remote-m2-pill">Parado</span>
-                            </div>
-                            <div class="remote-motor-btns">
-                                <button class="remote-btn remote-btn-lg remote-btn-left" onclick="sim.motorMove('2','esquerda')">
-                                    <span class="btn-arrow">◀</span>
-                                    <span class="btn-label">Esquerda</span>
-                                </button>
-                                <button class="remote-btn remote-btn-lg remote-btn-stop" onclick="sim.motorStop('2')">
-                                    <span class="btn-icon">⏹</span>
-                                    <span class="btn-label">Parar</span>
-                                </button>
-                                <button class="remote-btn remote-btn-lg remote-btn-right" onclick="sim.motorMove('2','direita')">
-                                    <span class="btn-label">Direita</span>
-                                    <span class="btn-arrow">▶</span>
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Parar Todos -->
-                        <div class="remote-motor remote-motor-all">
-                            <div class="remote-motor-header">
-                                <span class="remote-motor-title">Todos</span>
-                                <span class="remote-motor-pill remote-motor-pill-all">Parados</span>
-                            </div>
-                            <div class="remote-motor-btns">
-                                <button class="remote-btn remote-btn-lg remote-btn-stop remote-btn-stop-all" onclick="sim.motorStop()">
-                                    <span class="btn-icon">⏹</span>
-                                    <span class="btn-label">Parar Todos</span>
-                                </button>
-                            </div>
-                        </div>
+                        <div class="motor-status" id="motor2-status">Parado</div>
                     </div>
 
-                    <div class="remote-hint">
-                        <p>🕷️ Mantenha pressionado para girar continuamente. Solte ou toque <b>Parar</span> para interromper.</p>
-                        <p class="hint-detail">Motores giram continuamente até receber comando de parada.</p>
+                    <!-- Parar Todos -->
+                    <div class="remote-motor-block remote-motor-block-all">
+                        <div class="motor-label">Todos os Motores</div>
+                        <div class="motor-btn-row motor-btn-row-all">
+                            <button class="remote-btn motor-btn-stop-all" onclick="sim.motorStop()">⏹ Parar Todos</button>
+                        </div>
+                        <div class="motor-status motor-status-all" id="motor-all-status">Parados</div>
+                    </div>
+                </div>
+
+                <!-- ===== DADOS WIFI ABAIXO DOS BOTOES ===== -->
+                <div class="wifi-data-card">
+                    <div class="wifi-row">
+                        <span class="wifi-label">Wi-Fi</span>
+                        <span class="wifi-value" id="wifi-data-ssid">WindFollowBlind-Setup</span>
+                    </div>
+                    <div class="wifi-row">
+                        <span class="wifi-label">Modo</span>
+                        <span class="wifi-value" id="wifi-data-mode">AP</span>
+                    </div>
+                    <div class="wifi-row">
+                        <span class="wifi-label">IP</span>
+                        <span class="wifi-value" id="wifi-data-ip">192.168.4.1</span>
+                    </div>
+                    <div class="wifi-row">
+                        <span class="wifi-label">mDNS</span>
+                        <span class="wifi-value" id="wifi-data-mdns">windfollowblind.local</span>
+                    </div>
+                </div>
+
+                <!-- ===== STATUS DOS MOTORES ABAIXO ===== -->
+                <div class="motor-summary-card">
+                    <div class="summary-row">
+                        <span class="summary-label">Motor 1</span>
+                        <span class="summary-value" id="summary-m1">Parado</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Motor 2</span>
+                        <span class="summary-value" id="summary-m2">Parado</span>
                     </div>
                 </div>
             </section>
@@ -310,7 +294,7 @@ static const char WIND_FOLLOW_INDEX_HTML[] PROGMEM = R"WFWEB(
             </section>
         </main>
 
-        <!-- Navegação inferior (mobile first) -->
+        <!-- Navegacao inferior (mobile first) -->
         <nav class="bottom-nav">
             <button class="nav-item active" data-tab="remote" onclick="sim.switchTab('remote', this)">
                 <span class="nav-icon">🎮</span>
@@ -1440,15 +1424,407 @@ main {
   border-color: var(--color-danger);
 }
 
-/* ===== WindFollowBlind: Controle Remoto Mobile First (Drácula) ===== */
+/* ===== WindFollowBlind: Controle Remoto Mobile First (Drácula) - Novo Layout ===== */
 
+/* Header: logo pequeno + nome */
 .remote-header {
   position: relative;
-  padding: 1.5rem 1rem 1rem;
+  padding: 1rem 1rem 0.75rem;
   background: linear-gradient(135deg, var(--color-bg-elevated), var(--color-bg));
   border-bottom: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
+  gap: 0.5rem;
+}
+
+.remote-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.wind-logo {
+  width: 32px;
+  height: 32px;
+}
+
+.brand-name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-text);
+  letter-spacing: -0.5px;
+}
+
+.brand-accent {
+  color: var(--color-primary);
+}
+
+.brand-sub {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  margin-top: 0.05rem;
+}
+
+.remote-header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-left: auto;
+}
+
+.theme-switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+}
+
+.theme-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.theme-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--color-bg-hover);
+  transition: 0.3s;
+  border-radius: 24px;
+}
+
+.theme-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+}
+
+.theme-switch input:checked + .theme-slider {
+  background-color: var(--color-primary);
+}
+
+.theme-switch input:checked + .theme-slider:before {
+  transform: translateX(20px);
+}
+
+.status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.status-indicator.status-off {
+  background: rgba(255, 85, 85, 0.15);
+  color: var(--color-danger);
+  border-color: var(--color-danger);
+}
+
+.status-indicator.status-ok {
+  background: rgba(80, 250, 123, 0.15);
+  color: var(--color-success);
+  border-color: var(--color-success);
+}
+
+/* Conteúdo principal */
+main#content {
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Card remoto principal */
+.remote-card {
+  background: var(--color-bg-elevated);
+  border-radius: 16px;
+  padding: 1rem;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--color-border);
+}
+
+/* Bloco de motor */
+.remote-motor-block {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.remote-motor-block-all {
+  background: linear-gradient(135deg, var(--color-bg-elevated), var(--color-bg));
+  border: 1px solid var(--color-primary);
+}
+
+.motor-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Linha de 3 botoes grandes - largura total */
+.motor-btn-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.motor-btn-row-all {
+  grid-template-columns: 1fr;
+}
+
+/* Botoes grandes */
+.remote-btn {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1.1rem 0.5rem;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  touch-action: manipulation;
+  min-height: 64px;
+}
+
+.remote-btn:active {
+  transform: scale(0.96);
+}
+
+.remote-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.motor-btn-left {
+  background: var(--color-info);
+  color: #282a36;
+}
+
+.motor-btn-left:active {
+  background: #ff9fdb;
+}
+
+.motor-btn-right {
+  background: var(--color-primary);
+  color: #282a36;
+}
+
+.motor-btn-right:active {
+  background: #7bc7e6;
+}
+
+.motor-btn-stop {
+  background: var(--color-danger);
+  color: #282a36;
+}
+
+.motor-btn-stop:active {
+  background: #ff7777;
+}
+
+.motor-btn-stop-all {
+  background: var(--color-danger);
+  color: #282a36;
+}
+
+/* Status abaixo de cada motor */
+.motor-status {
+  text-align: center;
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.motor-status.moving { color: var(--color-success); }
+.motor-status.stopped { color: var(--color-text-muted); }
+
+.motor-status-all {
+  text-align: center;
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+/* ===== DADOS WIFI ABAIXO DOS BOTOES ===== */
+.wifi-data-card {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.wifi-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.wifi-row:last-child {
+  border-bottom: none;
+}
+
+.wifi-label {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.wifi-value {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-text);
+  font-family: monospace;
+}
+
+/* ===== RESUMO DOS MOTORES ABAIXO ===== */
+.motor-summary-card {
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  padding: 1rem;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.summary-row:last-child {
+  border-bottom: none;
+}
+
+.summary-label {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+.summary-value {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.summary-value.moving { color: var(--color-success); }
+.summary-value.stopped { color: var(--color-text-muted); }
+
+/* Hint (removido - nao necessario no novo layout) */
+.remote-hint {
+  display: none;
+}
+
+/* Navegacao inferior (mobile first) */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-around;
+  padding: 0.75rem 0.5rem;
+  background: var(--color-bg-elevated);
+  border-top: 1px solid var(--color-border);
+  z-index: 100;
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  color: var(--color-text-muted);
+  font-size: 0.7rem;
+  transition: color 0.2s;
+  touch-action: manipulation;
+}
+
+.nav-item.active {
+  color: var(--color-primary);
+}
+
+.nav-icon {
+  font-size: 1.5rem;
+}
+
+.nav-label {
+  font-size: 0.65rem;
+  font-weight: 600;
+}
+
+/* Telas maiores */
+@media (min-width: 640px) {
+  main#content {
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  .remote-header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.5rem 2rem;
+  }
+
+  .remote-header-right {
+    margin-left: 0;
+  }
+
+  .bottom-nav {
+    bottom: env(safe-area-inset-bottom);
+    padding: 0.75rem max(env(safe-area-inset-right), 1rem);
+  }
+}
+
+/* Scrollbar customizada */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg-hover);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
   gap: 0.75rem;
 }
 
@@ -2089,9 +2465,11 @@ const sim = {
             badge.textContent = this.wifi.mode === 'AP' ? 'Modo: Access Point (AP)' : 'Modo: Estacao (STA)';
             badge.style.background = this.wifi.mode === 'AP' ? '#2563eb' : '#16a34a';
         }
-        document.getElementById('wifi-current-ssid').textContent = this.wifi.ssid;
-        document.getElementById('wifi-local-ip').textContent = this.wifi.localIp;
-        document.getElementById('wifi-mdns').textContent = 'http://' + this.wifi.mdns + '/';
+        // Dados Wi-Fi abaixo dos botoes (tela inicial)
+        document.getElementById('wifi-data-ssid').textContent = this.wifi.ssid;
+        document.getElementById('wifi-data-mode').textContent = this.wifi.mode === 'AP' ? 'AP' : 'STA';
+        document.getElementById('wifi-data-ip').textContent = this.wifi.localIp;
+        document.getElementById('wifi-data-mdns').textContent = 'http://' + this.wifi.mdns + '/';
         const modeSel = document.getElementById('wifi-mode');
         if (modeSel) modeSel.value = this.wifi.mode;
         const ssidIn = document.getElementById('wifi-ssid');
@@ -2234,26 +2612,26 @@ const sim = {
     },
 
     updateMotorUI() {
-        const m1 = document.getElementById('status-motor1');
-        const m2 = document.getElementById('status-motor2');
-        const d1 = document.getElementById('status-dir1');
-        const d2 = document.getElementById('status-dir2');
-        const p1 = document.getElementById('remote-m1-pill');
-        const p2 = document.getElementById('remote-m2-pill');
+        const m1 = document.getElementById('motor1-status');
+        const m2 = document.getElementById('motor2-status');
+        const s1 = document.getElementById('summary-m1');
+        const s2 = document.getElementById('summary-m2');
 
-        if (m1) m1.textContent = this.motor.moving1 ? 'Movendo' : 'Parado';
-        if (m2) m2.textContent = this.motor.moving2 ? 'Movendo' : 'Parado';
-        if (d1) d1.textContent = this.motor.direction1;
-        if (d2) d2.textContent = this.motor.direction2;
-
-        // Pills de status nos motores
-        if (p1) {
-            p1.textContent = this.motor.moving1 ? this.motor.direction1 : 'Parado';
-            p1.className = 'remote-motor-pill ' + (this.motor.moving1 ? 'moving' : 'stopped');
+        if (m1) {
+            m1.textContent = this.motor.moving1 ? this.motor.direction1 : 'Parado';
+            m1.className = 'motor-status ' + (this.motor.moving1 ? 'moving' : 'stopped');
         }
-        if (p2) {
-            p2.textContent = this.motor.moving2 ? this.motor.direction2 : 'Parado';
-            p2.className = 'remote-motor-pill ' + (this.motor.moving2 ? 'moving' : 'stopped');
+        if (m2) {
+            m2.textContent = this.motor.moving2 ? this.motor.direction2 : 'Parado';
+            m2.className = 'motor-status ' + (this.motor.moving2 ? 'moving' : 'stopped');
+        }
+        if (s1) {
+            s1.textContent = this.motor.moving1 ? this.motor.direction1 : 'Parado';
+            s1.className = 'summary-value ' + (this.motor.moving1 ? 'moving' : 'stopped');
+        }
+        if (s2) {
+            s2.textContent = this.motor.moving2 ? this.motor.direction2 : 'Parado';
+            s2.className = 'summary-value ' + (this.motor.moving2 ? 'moving' : 'stopped');
         }
     },
 

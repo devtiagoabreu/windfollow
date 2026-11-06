@@ -1,5 +1,5 @@
 {
-  "name": "WindFollowBlind",
+  "name": "WindFollow Controle Remoto",
   "short_name": "WindFollow",
   "description": "Controle remoto de 2 motores DC via L298N - ESP32",
   "start_url": "/",

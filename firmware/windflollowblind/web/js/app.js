@@ -252,9 +252,11 @@ const sim = {
             badge.textContent = this.wifi.mode === 'AP' ? 'Modo: Access Point (AP)' : 'Modo: Estacao (STA)';
             badge.style.background = this.wifi.mode === 'AP' ? '#2563eb' : '#16a34a';
         }
-        document.getElementById('wifi-current-ssid').textContent = this.wifi.ssid;
-        document.getElementById('wifi-local-ip').textContent = this.wifi.localIp;
-        document.getElementById('wifi-mdns').textContent = 'http://' + this.wifi.mdns + '/';
+        // Dados Wi-Fi abaixo dos botoes (tela inicial)
+        document.getElementById('wifi-data-ssid').textContent = this.wifi.ssid;
+        document.getElementById('wifi-data-mode').textContent = this.wifi.mode === 'AP' ? 'AP' : 'STA';
+        document.getElementById('wifi-data-ip').textContent = this.wifi.localIp;
+        document.getElementById('wifi-data-mdns').textContent = 'http://' + this.wifi.mdns + '/';
         const modeSel = document.getElementById('wifi-mode');
         if (modeSel) modeSel.value = this.wifi.mode;
         const ssidIn = document.getElementById('wifi-ssid');
@@ -397,26 +399,26 @@ const sim = {
     },
 
     updateMotorUI() {
-        const m1 = document.getElementById('status-motor1');
-        const m2 = document.getElementById('status-motor2');
-        const d1 = document.getElementById('status-dir1');
-        const d2 = document.getElementById('status-dir2');
-        const p1 = document.getElementById('remote-m1-pill');
-        const p2 = document.getElementById('remote-m2-pill');
+        const m1 = document.getElementById('motor1-status');
+        const m2 = document.getElementById('motor2-status');
+        const s1 = document.getElementById('summary-m1');
+        const s2 = document.getElementById('summary-m2');
 
-        if (m1) m1.textContent = this.motor.moving1 ? 'Movendo' : 'Parado';
-        if (m2) m2.textContent = this.motor.moving2 ? 'Movendo' : 'Parado';
-        if (d1) d1.textContent = this.motor.direction1;
-        if (d2) d2.textContent = this.motor.direction2;
-
-        // Pills de status nos motores
-        if (p1) {
-            p1.textContent = this.motor.moving1 ? this.motor.direction1 : 'Parado';
-            p1.className = 'remote-motor-pill ' + (this.motor.moving1 ? 'moving' : 'stopped');
+        if (m1) {
+            m1.textContent = this.motor.moving1 ? this.motor.direction1 : 'Parado';
+            m1.className = 'motor-status ' + (this.motor.moving1 ? 'moving' : 'stopped');
         }
-        if (p2) {
-            p2.textContent = this.motor.moving2 ? this.motor.direction2 : 'Parado';
-            p2.className = 'remote-motor-pill ' + (this.motor.moving2 ? 'moving' : 'stopped');
+        if (m2) {
+            m2.textContent = this.motor.moving2 ? this.motor.direction2 : 'Parado';
+            m2.className = 'motor-status ' + (this.motor.moving2 ? 'moving' : 'stopped');
+        }
+        if (s1) {
+            s1.textContent = this.motor.moving1 ? this.motor.direction1 : 'Parado';
+            s1.className = 'summary-value ' + (this.motor.moving1 ? 'moving' : 'stopped');
+        }
+        if (s2) {
+            s2.textContent = this.motor.moving2 ? this.motor.direction2 : 'Parado';
+            s2.className = 'summary-value ' + (this.motor.moving2 ? 'moving' : 'stopped');
         }
     },
 

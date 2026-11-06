@@ -5,29 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#282a36">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <meta name="apple-mobile-web-app-title" content="WindFollow">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="WindFollow Controle Remoto">
     <link rel="manifest" href="/manifest.json">
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDUxMiA1MTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxkZWZzPgo8bGluZWFyR3JhZGllbnQgaWQ9ImdyYWQiIHgxPSIwJSIgeTE9IjAlIiB4Mj0oMTAwJSAqIC0yNXB4KSIgeTI9IjEwMCUiPgo8c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNiZDkzdjkiLz4KPHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjNjI3MmE0Ii8+CjwvbGluZWFyR3JhZGllbnQ+CjwvZGVmcz4KPHBhdGggZD0iTTI1NiA1MTJDMzk3LjQ1NiA1MTIgNTEyIDM5Ny40NTYgNTEyIDI1NUM1MTIgMTE0LjU0NCAzOTcuNDU2IDAgMjU2IDBDMTE0LjU0NCAwIDAgMTE0LjU0NCAwIDI1NkMwIDM5Ny40NTYgMTE0LjU0NiA1MTIgMjU2IDUxMloiIGZpbGw9InVybCgjZ3JhZCkiLz4KPGcgZmlsdGVyPSJ1cmwoI2ZpbHRlc18xXyIpIHN0cm9rZT0iIzZyNzI3NCIgc3Ryb2tlLXdpZHRoPSIyNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj4KPGcgZmlsdGVyPSJ1cmwoI2ZpbHRlc18yXyIpPgo8cGF0aCBkPSJNMjU2IDEwNC41NDRDMTc5LjQ1NiAxMDQuNTQ0IDEyMS41NDQgMTYyLjQ1NiAxMjEuNTQ0IDIzOS4wMDBDMTIxLjU0NCAzMTUuNTQ0IDE3OS40NTYgMzcyLjQ1NiAyNTYgMzcyLjQ1NkMzMzIuNTQ0IDM3Mi40NTYgMzkwLjQ1NiAzMTUuNTQ0IDM5MC40NTYgMjM5LjAwMEMzOTAuNDU2IDE2Mi40NTYgMzMyLjU0NiAxMDQuNTQ0IDI1NiAxMDQuNTQ0WiIgZmlsdGVyPSJ1cmwoI2ZpbHRlc18zXykiLz4KPC9nPgo8L2c+Cjwvc3ZnPg==">
-    <title>WindFollow — Controle Remoto</title>
+    <title>WindFollow Controle Remoto</title>
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
     <div id="app">
-        <!-- ===== TELA INICIAL: CONTROLE REMOTO (mobile first) ===== -->
+        <!-- ===== HEADER: Logo pequeno + Nome ===== -->
         <header class="remote-header">
             <div class="remote-brand">
                 <svg class="wind-logo" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2L15 9H9L12 2Z" fill="#bd93f9"/>
-                    <path d="M12 22L15 15H9L12 22Z" fill="#ff79c6"/>
-                    <path d="M3 12C3 6.477 6.477 3 12 3S21 6.477 21 12S6.477 21 12 21S3 17.523 3 12Z" fill="none" stroke="#bd93f9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M12 3L12 21" stroke="#ff79c6" stroke-width="2" stroke-linecap="round"/>
-                    <path d="M3 12L21 12" stroke="#bd93f9" stroke-width="2" stroke-linecap="round"/>
+                    <!-- Simbolo de vento: tres curvas -->
+                    <path d="M4 12Q8 2 12 12" stroke="#bd93f9" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                    <path d="M4 12Q8 10 12 12" stroke="#ff79c6" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <path d="M20 12Q16 22 12 12" stroke="#50fa7b" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <circle cx="12" cy="12" r="1.5" fill="#f8f8f2"/>
                 </svg>
-                <span class="brand-name">Wind<span class="brand-accent">Follow</span></span>
-                <span class="brand-sub">Controle Remoto • L298N</span>
+                <div class="remote-title">
+                    <div class="brand-name">Wind<span class="brand-accent">Follow</span></div>
+                    <div class="brand-sub">Controle Remoto</div>
+                </div>
             </div>
-            <div class="remote-header-actions">
+            <div class="remote-header-right">
                 <label class="theme-switch">
                     <input type="checkbox" id="theme-toggle" onchange="sim.toggleTheme()">
                     <span class="theme-slider"></span>
@@ -40,84 +41,67 @@
             <!-- Aba: Controle Remoto (inicial) -->
             <section id="tab-remote" class="tab-panel active">
                 <div class="remote-card">
-                    <div class="remote-status-grid">
-                        <div class="remote-status-item">
-                            <span class="remote-label">Wi-Fi</span>
-                            <span class="remote-value" id="remote-status-wifi">AP</span>
+                    <!-- Motor 1: 3 botoes grandes ocupando largura total -->
+                    <div class="remote-motor-block">
+                        <div class="motor-label">Motor 1</div>
+                        <div class="motor-btn-row">
+                            <button class="remote-btn motor-btn-left" onclick="sim.motorMove('1','esquerda')">◀ Esquerda</button>
+                            <button class="remote-btn motor-btn-stop" onclick="sim.motorStop('1')">⏹ Parar</button>
+                            <button class="remote-btn motor-btn-right" onclick="sim.motorMove('1','direita')">Direita ▶</button>
                         </div>
-                        <div class="remote-status-item">
-                            <span class="remote-label">Motor 1</span>
-                            <span class="remote-value" id="remote-status-m1">Parado</span>
-                        </div>
-                        <div class="remote-status-item">
-                            <span class="remote-label">Motor 2</span>
-                            <span class="remote-value" id="remote-status-m2">Parado</span>
-                        </div>
+                        <div class="motor-status" id="motor1-status">Parado</div>
                     </div>
 
-                    <div class="remote-controls">
-                        <!-- Motor 1 -->
-                        <div class="remote-motor">
-                            <div class="remote-motor-header">
-                                <span class="remote-motor-title">Motor 1</span>
-                                <span class="remote-motor-pill" id="remote-m1-pill">Parado</span>
-                            </div>
-                            <div class="remote-motor-btns">
-                                <button class="remote-btn remote-btn-lg remote-btn-left" onclick="sim.motorMove('1','esquerda')">
-                                    <span class="btn-arrow">◀</span>
-                                    <span class="btn-label">Esquerda</span>
-                                </button>
-                                <button class="remote-btn remote-btn-lg remote-btn-stop" onclick="sim.motorStop('1')">
-                                    <span class="btn-icon">⏹</span>
-                                    <span class="btn-label">Parar</span>
-                                </button>
-                                <button class="remote-btn remote-btn-lg remote-btn-right" onclick="sim.motorMove('1','direita')">
-                                    <span class="btn-label">Direita</span>
-                                    <span class="btn-arrow">▶</span>
-                                </button>
-                            </div>
+                    <!-- Motor 2: 3 botoes grandes ocupando largura total -->
+                    <div class="remote-motor-block">
+                        <div class="motor-label">Motor 2</div>
+                        <div class="motor-btn-row">
+                            <button class="remote-btn motor-btn-left" onclick="sim.motorMove('2','esquerda')">◀ Esquerda</button>
+                            <button class="remote-btn motor-btn-stop" onclick="sim.motorStop('2')">⏹ Parar</button>
+                            <button class="remote-btn motor-btn-right" onclick="sim.motorMove('2','direita')">Direita ▶</button>
                         </div>
-
-                        <!-- Motor 2 -->
-                        <div class="remote-motor">
-                            <div class="remote-motor-header">
-                                <span class="remote-motor-title">Motor 2</span>
-                                <span class="remote-motor-pill" id="remote-m2-pill">Parado</span>
-                            </div>
-                            <div class="remote-motor-btns">
-                                <button class="remote-btn remote-btn-lg remote-btn-left" onclick="sim.motorMove('2','esquerda')">
-                                    <span class="btn-arrow">◀</span>
-                                    <span class="btn-label">Esquerda</span>
-                                </button>
-                                <button class="remote-btn remote-btn-lg remote-btn-stop" onclick="sim.motorStop('2')">
-                                    <span class="btn-icon">⏹</span>
-                                    <span class="btn-label">Parar</span>
-                                </button>
-                                <button class="remote-btn remote-btn-lg remote-btn-right" onclick="sim.motorMove('2','direita')">
-                                    <span class="btn-label">Direita</span>
-                                    <span class="btn-arrow">▶</span>
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Parar Todos -->
-                        <div class="remote-motor remote-motor-all">
-                            <div class="remote-motor-header">
-                                <span class="remote-motor-title">Todos</span>
-                                <span class="remote-motor-pill remote-motor-pill-all">Parados</span>
-                            </div>
-                            <div class="remote-motor-btns">
-                                <button class="remote-btn remote-btn-lg remote-btn-stop remote-btn-stop-all" onclick="sim.motorStop()">
-                                    <span class="btn-icon">⏹</span>
-                                    <span class="btn-label">Parar Todos</span>
-                                </button>
-                            </div>
-                        </div>
+                        <div class="motor-status" id="motor2-status">Parado</div>
                     </div>
 
-                    <div class="remote-hint">
-                        <p>🕷️ Mantenha pressionado para girar continuamente. Solte ou toque <b>Parar</span> para interromper.</p>
-                        <p class="hint-detail">Motores giram continuamente até receber comando de parada.</p>
+                    <!-- Parar Todos -->
+                    <div class="remote-motor-block remote-motor-block-all">
+                        <div class="motor-label">Todos os Motores</div>
+                        <div class="motor-btn-row motor-btn-row-all">
+                            <button class="remote-btn motor-btn-stop-all" onclick="sim.motorStop()">⏹ Parar Todos</button>
+                        </div>
+                        <div class="motor-status motor-status-all" id="motor-all-status">Parados</div>
+                    </div>
+                </div>
+
+                <!-- ===== DADOS WIFI ABAIXO DOS BOTOES ===== -->
+                <div class="wifi-data-card">
+                    <div class="wifi-row">
+                        <span class="wifi-label">Wi-Fi</span>
+                        <span class="wifi-value" id="wifi-data-ssid">WindFollowBlind-Setup</span>
+                    </div>
+                    <div class="wifi-row">
+                        <span class="wifi-label">Modo</span>
+                        <span class="wifi-value" id="wifi-data-mode">AP</span>
+                    </div>
+                    <div class="wifi-row">
+                        <span class="wifi-label">IP</span>
+                        <span class="wifi-value" id="wifi-data-ip">192.168.4.1</span>
+                    </div>
+                    <div class="wifi-row">
+                        <span class="wifi-label">mDNS</span>
+                        <span class="wifi-value" id="wifi-data-mdns">windfollowblind.local</span>
+                    </div>
+                </div>
+
+                <!-- ===== STATUS DOS MOTORES ABAIXO ===== -->
+                <div class="motor-summary-card">
+                    <div class="summary-row">
+                        <span class="summary-label">Motor 1</span>
+                        <span class="summary-value" id="summary-m1">Parado</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Motor 2</span>
+                        <span class="summary-value" id="summary-m2">Parado</span>
                     </div>
                 </div>
             </section>
@@ -303,7 +287,7 @@
             </section>
         </main>
 
-        <!-- Navegação inferior (mobile first) -->
+        <!-- Navegacao inferior (mobile first) -->
         <nav class="bottom-nav">
             <button class="nav-item active" data-tab="remote" onclick="sim.switchTab('remote', this)">
                 <span class="nav-icon">🎮</span>

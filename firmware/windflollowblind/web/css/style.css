@@ -1106,15 +1106,407 @@ main {
   border-color: var(--color-danger);
 }
 
-/* ===== WindFollowBlind: Controle Remoto Mobile First (Drácula) ===== */
+/* ===== WindFollowBlind: Controle Remoto Mobile First (Drácula) - Novo Layout ===== */
 
+/* Header: logo pequeno + nome */
 .remote-header {
   position: relative;
-  padding: 1.5rem 1rem 1rem;
+  padding: 1rem 1rem 0.75rem;
   background: linear-gradient(135deg, var(--color-bg-elevated), var(--color-bg));
   border-bottom: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
+  gap: 0.5rem;
+}
+
+.remote-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.wind-logo {
+  width: 32px;
+  height: 32px;
+}
+
+.brand-name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-text);
+  letter-spacing: -0.5px;
+}
+
+.brand-accent {
+  color: var(--color-primary);
+}
+
+.brand-sub {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  margin-top: 0.05rem;
+}
+
+.remote-header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-left: auto;
+}
+
+.theme-switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+}
+
+.theme-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.theme-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--color-bg-hover);
+  transition: 0.3s;
+  border-radius: 24px;
+}
+
+.theme-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+}
+
+.theme-switch input:checked + .theme-slider {
+  background-color: var(--color-primary);
+}
+
+.theme-switch input:checked + .theme-slider:before {
+  transform: translateX(20px);
+}
+
+.status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.status-indicator.status-off {
+  background: rgba(255, 85, 85, 0.15);
+  color: var(--color-danger);
+  border-color: var(--color-danger);
+}
+
+.status-indicator.status-ok {
+  background: rgba(80, 250, 123, 0.15);
+  color: var(--color-success);
+  border-color: var(--color-success);
+}
+
+/* Conteúdo principal */
+main#content {
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Card remoto principal */
+.remote-card {
+  background: var(--color-bg-elevated);
+  border-radius: 16px;
+  padding: 1rem;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--color-border);
+}
+
+/* Bloco de motor */
+.remote-motor-block {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.remote-motor-block-all {
+  background: linear-gradient(135deg, var(--color-bg-elevated), var(--color-bg));
+  border: 1px solid var(--color-primary);
+}
+
+.motor-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Linha de 3 botoes grandes - largura total */
+.motor-btn-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.motor-btn-row-all {
+  grid-template-columns: 1fr;
+}
+
+/* Botoes grandes */
+.remote-btn {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1.1rem 0.5rem;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  touch-action: manipulation;
+  min-height: 64px;
+}
+
+.remote-btn:active {
+  transform: scale(0.96);
+}
+
+.remote-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.motor-btn-left {
+  background: var(--color-info);
+  color: #282a36;
+}
+
+.motor-btn-left:active {
+  background: #ff9fdb;
+}
+
+.motor-btn-right {
+  background: var(--color-primary);
+  color: #282a36;
+}
+
+.motor-btn-right:active {
+  background: #7bc7e6;
+}
+
+.motor-btn-stop {
+  background: var(--color-danger);
+  color: #282a36;
+}
+
+.motor-btn-stop:active {
+  background: #ff7777;
+}
+
+.motor-btn-stop-all {
+  background: var(--color-danger);
+  color: #282a36;
+}
+
+/* Status abaixo de cada motor */
+.motor-status {
+  text-align: center;
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.motor-status.moving { color: var(--color-success); }
+.motor-status.stopped { color: var(--color-text-muted); }
+
+.motor-status-all {
+  text-align: center;
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+/* ===== DADOS WIFI ABAIXO DOS BOTOES ===== */
+.wifi-data-card {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.wifi-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.wifi-row:last-child {
+  border-bottom: none;
+}
+
+.wifi-label {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.wifi-value {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-text);
+  font-family: monospace;
+}
+
+/* ===== RESUMO DOS MOTORES ABAIXO ===== */
+.motor-summary-card {
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  padding: 1rem;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.summary-row:last-child {
+  border-bottom: none;
+}
+
+.summary-label {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+.summary-value {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.summary-value.moving { color: var(--color-success); }
+.summary-value.stopped { color: var(--color-text-muted); }
+
+/* Hint (removido - nao necessario no novo layout) */
+.remote-hint {
+  display: none;
+}
+
+/* Navegacao inferior (mobile first) */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-around;
+  padding: 0.75rem 0.5rem;
+  background: var(--color-bg-elevated);
+  border-top: 1px solid var(--color-border);
+  z-index: 100;
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  color: var(--color-text-muted);
+  font-size: 0.7rem;
+  transition: color 0.2s;
+  touch-action: manipulation;
+}
+
+.nav-item.active {
+  color: var(--color-primary);
+}
+
+.nav-icon {
+  font-size: 1.5rem;
+}
+
+.nav-label {
+  font-size: 0.65rem;
+  font-weight: 600;
+}
+
+/* Telas maiores */
+@media (min-width: 640px) {
+  main#content {
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  .remote-header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.5rem 2rem;
+  }
+
+  .remote-header-right {
+    margin-left: 0;
+  }
+
+  .bottom-nav {
+    bottom: env(safe-area-inset-bottom);
+    padding: 0.75rem max(env(safe-area-inset-right), 1rem);
+  }
+}
+
+/* Scrollbar customizada */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg-hover);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
   gap: 0.75rem;
 }
 
