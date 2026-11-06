@@ -1,0 +1,83 @@
+```mermaid
+flowchart TD
+    %% Início
+    Start([Início / Boot ESP32])
+    
+    %% Configuração
+    Config[Configurar GPIOs via NVS/Web]
+    Config -->|defaults| Defaults[Defaults:<br/>M1: 26/25/-1<br/>M2: 32/33/-1<br/>BT1: 27, BT2: 14]
+    
+    %% Loop principal
+    Loop{Loop Principal}
+    
+    %% Botões
+    B1[Botão 1 pressionado?<br/>GPIO 27]
+    B2[Botão 2 pressionado?<br/>GPIO 14]
+    
+    %% Sequências
+    S1{Sequência Motor 1:<br/>1=Esq 2=Par 3=Dir 4=Par}
+    S2{Sequência Motor 2:<br/>1=Esq 2=Par 3=Dir 4=Par}
+    
+    %% Ações
+    A1[Motor 1 Esquerda<br/>IN1=H IN2=L]
+    A2[Motor 1 Parado<br/>IN1=L IN2=L]
+    A3[Motor 1 Direita<br/>IN1=L IN2=H]
+    A4[Motor 2 Esquerda<br/>IN3=H IN4=L]
+    A5[Motor 2 Parado<br/>IN3=L IN4=L]
+    A6[Motor 2 Direita<br/>IN3=L IN4=H]
+    
+    %% Debounce
+    DB[Debounce 50ms<br/>detecta borda, não segura]
+    
+    %% Web / API
+    Web[Interface Web<br/>Painel de Controle]
+    API[API REST<br/>/api/motor/move]
+    
+    %% Conexões
+    Start --> Config
+    Config --> Defaults
+    Defaults --> Loop
+    
+    Loop --> B1
+    Loop --> B2
+    
+    B1 -->|Sim| DB
+    DB -->|borda| S1
+    B2 -->|Sim| DB
+    DB -->|borda| S2
+    
+    S1 -->|1| A1
+    S1 -->|2| A2
+    S1 -->|3| A3
+    S1 -->|4| A2
+    
+    S2 -->|1| A4
+    S2 -->|2| A5
+    S2 -->|3| A6
+    S2 -->|4| A5
+    
+    Web --> API
+    API --> A1
+    API --> A2
+    API --> A3
+    API --> A4
+    API --> A5
+    API --> A6
+    
+    %% Estilos
+    classDef loop fill:#282a36,stroke:#bd93f9,stroke-width:2px,color:#f8f8f2
+    classDef btn fill:#ff79c6,stroke:#282a36,stroke-width:2px,color:#282a36
+    classDef seq fill:#6272a4,stroke:#8be9fd,stroke-width:2px,color:#f8f8f2
+    classDef act fill:#50fa7b,stroke:#282a36,stroke-width:2px,color:#282a36
+    classDef web fill:#f1fa8c,stroke:#282a36,stroke-width:2px,color:#282a36
+    
+    class Loop loop
+    class B1,B2 btn
+    class S1,S2 seq
+    class A1,A2,A3,A4,A5,A6 act
+    class Web,API web
+    class DB seq
+
+    linkStyle default stroke-width:2px,fill:none,stroke:#8be9fd
+    linkStyle 4,5 stroke:#ff5555,stroke-width:2px
+```

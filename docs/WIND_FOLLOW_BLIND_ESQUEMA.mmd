@@ -1,0 +1,63 @@
+```mermaid
+graph TD
+    %% Fonte e alimentação
+    FMT[Fonte Motor<br/>12V ou conforme especificação]
+    FESP[Fonte ESP32<br/>USB-C ou Bateria Li-Po]
+    
+    %% ESP32
+    ESP[ESP32 DevKit]
+    ESP -->|GPIO 26| IN1[L298N IN1<br/>Motor 1 Sentido 1]
+    ESP -->|GPIO 25| IN2[L298N IN2<br/>Motor 1 Sentido 2]
+    ESP -->|GPIO 32| IN3[L298N IN3<br/>Motor 2 Sentido 1]
+    ESP -->|GPIO 33| IN4[L298N IN4<br/>Motor 2 Sentido 2]
+    ESP -->|GPIO 27| BT1[Botão 1 NA<br/>↔ GND]
+    ESP -->|GPIO 14| BT2[Botão 2 NA<br/>↔ GND]
+    ESP -->|GND| GND1[GND Comum]
+    
+    %% L298N
+    L298N[L298N Ponte H Dupla]
+    IN1 --> L298N
+    IN2 --> L298N
+    IN3 --> L298N
+    IN4 --> L298N
+    
+    %% ENA/ENB jumpers
+    JENA[Jumper ENA<br/>instalado]:::jumper
+    JENB[Jumper ENB<br/>instalado]:::jumper
+    JENA -.-> L298N
+    JENB -.-> L298N
+    
+    %% Fontes
+    FMT -->|VMS/VM| L298N
+    FMT -->|GND| GND1
+    FESP -->|5V/3V3| ESP
+    FESP -->|GND| GND1
+    
+    %% Motores
+    L298N -->|OUT1/OUT2| M1[Motor 1 DC<br/>com redução]
+    L298N -->|OUT3/OUT4| M2[Motor 2 DC<br/>com redução]
+    
+    %% Estilos
+    classDef esp fill:#282a36,stroke:#bd93f9,stroke-width:2px,color:#f8f8f2
+    classDef l298n fill:#44475a,stroke:#ff79c6,stroke-width:2px,color:#f8f8f2
+    classDef motor fill:#50fa7b,stroke:#282a36,stroke-width:2px,color:#282a36
+    classDef fonte fill:#ff5555,stroke:#282a36,stroke-width:2px,color:#f8f8f2
+    classDef jumper fill:#f1fa8c,stroke:#282a36,stroke-width:1px,color:#282a36
+    classDef gpio fill:#6272a4,stroke:#8be9fd,stroke-width:1px,color:#f8f8f2
+    
+    class ESP esp
+    class L298N l298n
+    class M1,M2 motor
+    class FMT,FESP fonte
+    class JENA,JENB jumper
+    class IN1,IN2,IN3,IN4,BT1,BT2 gpio
+    class GND1 gpio
+
+    %% Fluxo lógico
+    BT1 -->|sequência M1| ESP
+    BT2 -->|sequência M2| ESP
+    
+    linkStyle default stroke-width:2px,fill:none,stroke:#8be9fd
+    linkStyle 10,11 stroke:#ff5555,stroke-width:2px
+    linkStyle 12,13 stroke:#50fa7b,stroke-width:2px
+```

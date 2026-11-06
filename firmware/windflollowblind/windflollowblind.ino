@@ -158,7 +158,7 @@ void setupNetwork() {
         }
     }
 
-    if (MDNS.begin("windflollowblind")) {
+    if (MDNS.begin("windfollowblind")) {
         MDNS.addService("http", "tcp", 80);
         Serial.println(F("mDNS: http://windflollowblind.local"));
     } else {
@@ -267,6 +267,8 @@ void loopButtons() {
             lastPress1 = now;
             seq1++;
             if (seq1 > 4) seq1 = 1;
+            Serial.print(F("[btn1] toque "));
+            Serial.println(seq1);
             switch (seq1) {
                 case 1:
                     Serial.println(F("[btn1] motor1 esquerda"));
