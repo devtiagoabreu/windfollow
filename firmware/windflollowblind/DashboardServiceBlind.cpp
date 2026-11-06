@@ -214,6 +214,16 @@ void DashboardServiceBlind::registerRoutes() {
 
     s_webServer->on("/api/system/info", HTTP_GET, []() { if (s_instance) s_instance->handleSystemInfo(); });
     s_webServer->on("/api/network/info", HTTP_GET, []() { if (s_instance) s_instance->handleNetworkInfo(); });
+
+    // Captive Portal: qualquer requisicao desconhecida redireciona para a pagina inicial.
+    // Assim, quando um dispositivo se conecta ao AP e abre o navegador, ele carrega
+    // automaticamente a pagina de controle do WindFollowBlind.
+    s_webServer->onNotFound([]() {
+        if (s_instance) {
+            s_webServer->sendHeader("Location", "/");
+            s_webServer->send(302, "text/plain", "");
+        }
+    });
 }
 
 // ============================================================

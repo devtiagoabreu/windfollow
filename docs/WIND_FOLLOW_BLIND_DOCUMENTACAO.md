@@ -254,21 +254,41 @@ Configuração: `INPUT_PULLUP` (resistor interno).
 
 ---
 
-## 4. Sequência de Funcionamento (por botão)
+## 4. Comportamento de Movimento (Contínuo)
 
-Cada botão controla seu próprio motor independentemente. Os dois motores podem funcionar simultaneamente.
+Os motores giram **continuamente** enquanto acionados, parando apenas quando o comando de parada é executado (botão Parar na interface web, comando oposto, ou comando `stop` na API).
 
-| Toque | Estado | Comando L298N | Efeito |
-|-------|--------|---------------|--------|
-| 1 | Esquerda | IN1=HIGH, IN2=LOW | Motor gira sentido 1 |
-| 2 | Parado | IN1=LOW, IN2=LOW | Motor para |
-| 3 | Direita | IN1=LOW, IN2=HIGH | Motor gira sentido contrário |
-| 4 | Parado | IN1=LOW, IN2=LOW | Motor para |
-| 5+ | Reinicia | Volta ao toque 1 | Sequência repete |
+### 4.1 Botões Físicos (NA)
 
-A lógica detecta a **borda de pressionamento** (não avança enquanto o botão fica segurado). Há debounce de software de ~50 ms.
+| Botão | GPIO ESP32 | Ação ao pressionar |
+|-------|------------|-------------------|
+| Botão 1 | GPIO 27 | Alterna Motor 1: parado → esquerda → parado → direita → parado → repete |
+| Botão 2 | GPIO 14 | Alterna Motor 2: parado → esquerda → parado → direita → parado → repete |
 
----
+Configuração: `INPUT_PULLUP` (resistor interno).
+- Botão solto: GPIO lê HIGH
+- Botão pressionado: GPIO lê LOW (contato com GND)
+
+Debounce de software de ~50 ms (detecta borda de pressionamento, não avança enquanto segurado).
+
+### 4.2 Interface Web / API
+
+| Ação | Endpoint | Parâmetros |
+|------|----------|------------|
+| Motor 1 Esquerda | `POST /api/motor/move` | `{"motor":"1","direction":"esquerda"}` |
+| Motor 1 Direita | `POST /api/motor/move` | `{"motor":"1","direction":"direita"}` |
+| Motor 1 Parar | `POST /api/motor/move` | `{"motor":"1","direction":"stop"}` |
+| Motor 2 Esquerda | `POST /api/motor/move` | `{"motor":"2","direction":"esquerda"}` |
+| Motor 2 Direita | `POST /api/motor/move` | `{"motor":"2","direction":"direita"}` |
+| Motor 2 Parar | `POST /api/motor/move` | `{"motor":"2","direction":"stop"}` |
+| Parar Todos | `POST /api/motor/stop` | `{}` |
+
+O motor fica girando continuamente até receber um comando de parada ou de direção oposta.
+
+### 4.3 Captive Portal
+
+Quando um dispositivo se conecta ao AP `WindFollowBlind-Setup` e abre o navegador, ele é **redirecionado automaticamente** para a página inicial (`http://windfollowblind.local/` ou `http://192.168.4.1/`). Isso é feito via captive portal (qualquer requisição HTTP desconhecida retorna código 302 para `/`), facilitando o primeiro acesso sem precisar digitar o endereço manualmente.
+
 
 ## 5. Interface Web (Embarcada no ESP32)
 
@@ -298,7 +318,7 @@ A lógica detecta a **borda de pressionamento** (não avança enquanto o botão 
 | `/` | GET | Página principal (HTML) |
 | `/api/config` | GET/POST | Ler/salvar configuração de hardware |
 | `/api/config/reset` | POST | Restaurar defaults |
-| `/api/motor/move` | POST | Acionar motor (`motor`: "1"/"2", `direction`: "esquerda"/"direita"/"stop", `duration_ms`) |
+| `/api/motor/move` | POST | Acionar motor (`motor`: "1"/"2", `direction`: "esquerda"/"direita"/"stop". Movimento contínuo: `duration_ms` é ignorado.) |
 | `/api/motor/stop` | POST | Parar todos os motores |
 | `/api/motor/status` | GET | Status dos motores (moving1, moving2, direction1, direction2) |
 | `/api/wifi/status` | GET | Status da rede Wi-Fi |

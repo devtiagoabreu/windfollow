@@ -90,7 +90,7 @@ powershell -ExecutionPolicy Bypass -File tools/generate_web_assets.ps1
 
 Pasta `firmware/windflollowblind/` e `simulator/windflollowblind/`.
 
-Controle de **2 motores DC via L298N** + **2 botões NA** em um ESP32 DevKit (não usa a T-SIMCAM nem câmera). Cada botão avança seu próprio motor pela sequência: esquerda → parado → direita → parado → repete. Mantém a mesma interface web (dashboard, configuração de GPIOs, Wi-Fi AP/mDNS) do WindFollow, removendo apenas a parte de câmera e rastreamento por movimento.
+Controle de **2 motores DC via L298N** + **2 botões NA** em um ESP32 DevKit (não usa a T-SIMCAM nem câmera). Cada botão alterna seu próprio motor entre: parado → esquerda (contínuo) → parado → direita (contínuo) → parado → repete. Mantém a mesma interface web (dashboard, configuração de GPIOs, Wi-Fi AP/mDNS) do WindFollow, removendo apenas a parte de câmera e rastreamento por movimento.
 
 ## Hardware (do docs/documentacao_hardware_esp32_l298n.md)
 
@@ -102,23 +102,25 @@ Controle de **2 motores DC via L298N** + **2 botões NA** em um ESP32 DevKit (n�
 | Motor 2 IN3 | 32 | Sentido 1 do motor 2 |
 | Motor 2 IN4 | 33 | Sentido 2 do motor 2 |
 | Motor 2 ENB | jumper | Habilitação (sem PWM) |
-| Botão 1 | 27 | Avança sequência do motor 1 |
-| Botão 2 | 14 | Avança sequência do motor 2 |
+| Botão 1 | 27 | Alterna sequencia do motor 1 |
+| Botão 2 | 14 | Alterna sequencia do motor 2 |
 
-## Sequência por botão
+## Comportamento por botão
 
-| Toque | Motor |
-|-------|-------|
-| 1 | Gira para a esquerda |
-| 2 | Para |
-| 3 | Gira para a direita |
-| 4 | Para |
-| 5 | Reinicia a sequência (esquerda) |
+Os motores giram **continuamente** até receber um comando de parada. Cada toque no botão alterna o estado do motor correspondente.
+
+| Toque | Motor 1 | Motor 2 |
+|-------|---------|---------|
+| 1 | Gira para a esquerda (contínuo) | Gira para a esquerda (contínuo) |
+| 2 | Para | Para |
+| 3 | Gira para a direita (contínuo) | Gira para a direita (contínuo) |
+| 4 | Para | Para |
+| 5+ | Reinicia a sequência | Reinicia a sequência |
 
 ## Rede e interface
 
 - AP: `WindFollowBlind-Setup` / senha `windfollow123`, IP `192.168.4.1`
-- mDNS: `http://windflollowblind.local`
+- mDNS: `http://windfollowblind.local` (captive portal: qualquer navegador conectado ao AP é redirecionado automaticamente para esta página)
 - Interface web embarcada (sem câmera): dashboard de motores, configuração de GPIOs, setup Wi-Fi
 
 ## Simulador

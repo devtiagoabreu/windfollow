@@ -223,7 +223,7 @@ const sim = {
     },
 
     // ========================================================================
-    // Motores (simulacao visual)
+    // Motores (simulacao visual - movimento continuo)
     // ========================================================================
     async motorMove(motor, direction) {
         if (motor === '1' && !this.config.motor1_enabled) {
@@ -235,24 +235,17 @@ const sim = {
             return;
         }
 
-        const duration = this.config.step_duration_ms || 150;
-
-        // Atualiza estado visual
+        // Atualiza estado visual - movimento continuo (fica girando ate parar)
         if (motor === '1') {
             this.motor.moving1 = true;
             this.motor.direction1 = direction;
             clearTimeout(this.motor.step1);
             if (direction === 'esquerda') {
-                this.motor.pos1 = -80; // desloca para esquerda
+                this.motor.pos1 = -80;
             } else if (direction === 'direita') {
-                this.motor.pos1 = 80;  // desloca para direita
+                this.motor.pos1 = 80;
             }
-            this.motor.step1 = setTimeout(() => {
-                this.motor.moving1 = false;
-                this.motor.direction1 = 'parado';
-                this.motor.pos1 = 0; // retorna ao centro
-                this.updateMotorUI();
-            }, duration);
+            // Nao para automaticamente: so para com motorStop()
         } else if (motor === '2') {
             this.motor.moving2 = true;
             this.motor.direction2 = direction;
@@ -262,12 +255,7 @@ const sim = {
             } else if (direction === 'direita') {
                 this.motor.pos2 = 80;
             }
-            this.motor.step2 = setTimeout(() => {
-                this.motor.moving2 = false;
-                this.motor.direction2 = 'parado';
-                this.motor.pos2 = 0;
-                this.updateMotorUI();
-            }, duration);
+            // Nao para automaticamente: so para com motorStop()
         } else {
             // motorStop todos
             this.motorStop();
@@ -276,7 +264,7 @@ const sim = {
 
         this.updateMotorUI();
         this.showMsg(document.getElementById('msg-result'),
-            'Motor ' + motor + ' -> ' + direction + ' (' + duration + ' ms)', 'info');
+            'Motor ' + motor + ' -> ' + direction + ' (movimento continuo)', 'info');
     },
 
     async motorStop(motor) {

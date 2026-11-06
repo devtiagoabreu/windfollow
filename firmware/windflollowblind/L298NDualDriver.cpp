@@ -76,14 +76,8 @@ bool L298NDualDriver::begin(const HardwareConfig& config) {
 
 void L298NDualDriver::update() {
     if (!_initialized) return;
-    if (_moving1 && _moveDuration1 > 0 &&
-        (millis() - _moveStart1) >= (unsigned long)_moveDuration1) {
-        stopMotor1();
-    }
-    if (_moving2 && _moveDuration2 > 0 &&
-        (millis() - _moveStart2) >= (unsigned long)_moveDuration2) {
-        stopMotor2();
-    }
+    // Sem auto-stop por tempo: o motor fica girando ate stop() ser chamado
+    // explicitamente (botao Parar ou comando oposto).
 }
 
 void L298NDualDriver::stop() {
@@ -121,8 +115,8 @@ void L298NDualDriver::motor1Esquerda(int durationMs, int pwm) {
     _currentPwm1 = pwm;
     _moving1 = true;
     _direction1 = "esquerda";
-    _moveStart1 = millis();
-    _moveDuration1 = durationMs;
+    // Movimento contínuo: nao para automaticamente. So para com stopMotor1().
+    (void)durationMs;
 }
 
 void L298NDualDriver::motor1Direita(int durationMs, int pwm) {
@@ -133,8 +127,8 @@ void L298NDualDriver::motor1Direita(int durationMs, int pwm) {
     _currentPwm1 = pwm;
     _moving1 = true;
     _direction1 = "direita";
-    _moveStart1 = millis();
-    _moveDuration1 = durationMs;
+    // Movimento contínuo: nao para automaticamente. So para com stopMotor1().
+    (void)durationMs;
 }
 
 void L298NDualDriver::motor2Esquerda(int durationMs, int pwm) {
@@ -145,8 +139,8 @@ void L298NDualDriver::motor2Esquerda(int durationMs, int pwm) {
     _currentPwm2 = pwm;
     _moving2 = true;
     _direction2 = "esquerda";
-    _moveStart2 = millis();
-    _moveDuration2 = durationMs;
+    // Movimento contínuo: nao para automaticamente. So para com stopMotor2().
+    (void)durationMs;
 }
 
 void L298NDualDriver::motor2Direita(int durationMs, int pwm) {
@@ -157,8 +151,8 @@ void L298NDualDriver::motor2Direita(int durationMs, int pwm) {
     _currentPwm2 = pwm;
     _moving2 = true;
     _direction2 = "direita";
-    _moveStart2 = millis();
-    _moveDuration2 = durationMs;
+    // Movimento contínuo: nao para automaticamente. So para com stopMotor2().
+    (void)durationMs;
 }
 
 void L298NDualDriver::setSpeed1(int pwm) {

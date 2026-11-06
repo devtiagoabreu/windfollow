@@ -37,34 +37,34 @@ void MotorEngineBlind::stopMotor2() {
 }
 
 void MotorEngineBlind::motor1Esquerda(int durationMs, int pwm) {
-    if (durationMs <= 0) durationMs = _stepDurationMs;
-    l298nDualDriver.motor1Esquerda(durationMs, pwm);
+    (void)durationMs; // movimento continuo: nao usa duracao
+    l298nDualDriver.motor1Esquerda(0, pwm);
     _isMoving1 = true;
-    _moveDurationMs1 = durationMs;
+    _moveDurationMs1 = 0;
     _moveStartTime1 = millis();
 }
 
 void MotorEngineBlind::motor1Direita(int durationMs, int pwm) {
-    if (durationMs <= 0) durationMs = _stepDurationMs;
-    l298nDualDriver.motor1Direita(durationMs, pwm);
+    (void)durationMs; // movimento continuo: nao usa duracao
+    l298nDualDriver.motor1Direita(0, pwm);
     _isMoving1 = true;
-    _moveDurationMs1 = durationMs;
+    _moveDurationMs1 = 0;
     _moveStartTime1 = millis();
 }
 
 void MotorEngineBlind::motor2Esquerda(int durationMs, int pwm) {
-    if (durationMs <= 0) durationMs = _stepDurationMs;
-    l298nDualDriver.motor2Esquerda(durationMs, pwm);
+    (void)durationMs; // movimento continuo: nao usa duracao
+    l298nDualDriver.motor2Esquerda(0, pwm);
     _isMoving2 = true;
-    _moveDurationMs2 = durationMs;
+    _moveDurationMs2 = 0;
     _moveStartTime2 = millis();
 }
 
 void MotorEngineBlind::motor2Direita(int durationMs, int pwm) {
-    if (durationMs <= 0) durationMs = _stepDurationMs;
-    l298nDualDriver.motor2Direita(durationMs, pwm);
+    (void)durationMs; // movimento continuo: nao usa duracao
+    l298nDualDriver.motor2Direita(0, pwm);
     _isMoving2 = true;
-    _moveDurationMs2 = durationMs;
+    _moveDurationMs2 = 0;
     _moveStartTime2 = millis();
 }
 
