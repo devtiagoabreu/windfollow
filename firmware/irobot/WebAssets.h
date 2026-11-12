@@ -608,32 +608,16 @@ main.test-layout {
 )rawliteral";
 static const char* app_js = R"rawliteral("
 const API = {
-  base: '',
-  endpoints: ['http://192.168.4.1', 'http://irobot.local', ''],
-  current: 0,
-
   async _try(method, path, body) {
-    let lastErr = null;
-    for (let i = 0; i < this.endpoints.length; i++) {
-      var base = this.endpoints[(this.current + i) % this.endpoints.length];
-      var url = base + path;
-      try {
-        var res = await fetch(url, {
-          method: method,
-          headers: { 'Content-Type': 'application/json' },
-          body: body ? JSON.stringify(body) : undefined,
-          signal: AbortSignal.timeout(2500)
-        });
-        if (res.ok) {
-          this.current = (this.current + i) % this.endpoints.length;
-          return res.json();
-        }
-        lastErr = new Error('HTTP ' + res.status + ' ' + url);
-      } catch (err) {
-        lastErr = err;
-      }
+    const opts = { method };
+    if (body) {
+      opts.headers = { 'Content-Type': 'application/json' };
+      opts.body = JSON.stringify(body);
     }
-    throw lastErr || new Error('falha na API');
+    const res = await fetch(path, opts);
+    if (!res.ok) throw new Error('HTTP ' + res.status + ' ' + path);
+    const ct = res.headers.get('content-type') || '';
+    return ct.includes('application/json') ? await res.json() : await res.text();
   },
 
   async post(path, body) { return this._try('POST', path, body); },

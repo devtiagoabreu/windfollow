@@ -88,7 +88,7 @@ void DashboardService::handleMotorMove() {
     return;
   }
 
-  String body = _server->arg("plain");
+  String body = _server->streamToString();
   Serial.println("Body: " + body);
   DynamicJsonDocument doc(256);
   DeserializationError err = deserializeJson(doc, body);
@@ -119,7 +119,7 @@ void DashboardService::handleConfigGet() {
 
 void DashboardService::handleConfigPost() {
   Serial.println(">>> /api/config POST");
-  String body = _server->arg("plain");
+  String body = _server->streamToString();
   Serial.println("Body: " + body);
   DynamicJsonDocument doc(512);
   DeserializationError err = deserializeJson(doc, body);
