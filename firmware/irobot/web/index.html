@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>iRobot - Tela de Teste</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+  <header class="app-header">
+    <div class="header-left">
+      <h1>iRobot</h1>
+      <span class="subtitulo">Teste de Comando</span>
+    </div>
+    <div class="header-right">
+      <div id="status-badge" class="badge offline">Desconectado</div>
+      <label class="switch">
+        <input type="checkbox" id="power-toggle" checked>
+        <span class="slider-round"></span>
+      </label>
+    </div>
+  </header>
+
+  <main class="test-layout">
+    <!-- Coluna esquerda: joystick -->
+    <section class="joystick-column">
+      <div class="joystick-card">
+        <div class="joystick-title">Joystick Diferencial</div>
+        <div class="joystick-base" id="joystick-base">
+          <div class="joystick-center-dot"></div>
+          <div class="joystick-knob" id="joystick-knob"></div>
+          <div class="joystick-ring" id="joystick-ring"></div>
+        </div>
+        <div class="joystick-hint">Arraste para controlar (esq/dir = curva)</div>
+        <div class="joy-readout">
+          <span id="joy-dir">Parado</span>
+          <span id="joy-int">Int: 0%</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Coluna direita: botoes e controles de teste -->
+    <section class="controls-column">
+      <!-- Botoes direcionais -->
+      <div class="card">
+        <div class="card-title">Comandos Rapidos</div>
+        <div class="dpad">
+          <button class="btn dpad-btn" id="btn-frente" data-dir="frente">Frente</button>
+          <div class="dpad-row">
+            <button class="btn dpad-btn" id="btn-esquerda" data-dir="esquerda">Esquerda</button>
+            <button class="btn dpad-btn btn-stop" id="btn-stop">Parar</button>
+            <button class="btn dpad-btn" id="btn-direita" data-dir="direita">Direita</button>
+          </div>
+          <button class="btn dpad-btn" id="btn-tras" data-dir="tras">Tras</button>
+        </div>
+      </div>
+
+      <!-- Velocidade geral -->
+      <div class="card">
+        <div class="card-title">Velocidade</div>
+        <div class="slider-row">
+          <label class="slider-label">Geral</label>
+          <input type="range" id="speed-slider" min="0" max="100" value="70" class="hslider">
+          <span id="speed-value" class="speed-val">70%</span>
+        </div>
+      </div>
+
+      <!-- Controle diferencial independente -->
+      <div class="card">
+        <div class="card-title">Motores Independentes</div>
+        <div class="slider-row">
+          <label class="slider-label">Esquerda</label>
+          <input type="range" id="left-slider" min="-100" max="100" value="0" class="hslider">
+          <span id="left-value" class="speed-val">0</span>
+        </div>
+        <div class="slider-row">
+          <label class="slider-label">Direita</label>
+          <input type="range" id="right-slider" min="-100" max="100" value="0" class="hslider">
+          <span id="right-value" class="speed-val">0</span>
+        </div>
+        <button class="btn btn-outline btn-block" id="btn-apply-diff">Aplicar Diferencial</button>
+      </div>
+
+      <!-- Configuracao PWM -->
+      <div class="card">
+        <div class="card-title">Configuracao PWM</div>
+        <div class="config-row">
+          <label>Min</label>
+          <input type="number" id="cfg-pwm-min" min="0" max="255" value="60" class="cfg-input">
+        </div>
+        <div class="config-row">
+          <label>Max</label>
+          <input type="number" id="cfg-pwm-max" min="0" max="255" value="255" class="cfg-input">
+        </div>
+        <div class="config-row">
+          <label>Default</label>
+          <input type="number" id="cfg-pwm-default" min="0" max="255" value="150" class="cfg-input">
+        </div>
+        <div class="config-row">
+          <label>Motores</label>
+          <label class="switch inline">
+            <input type="checkbox" id="cfg-motors-enabled" checked>
+            <span class="slider-round"></span>
+          </label>
+        </div>
+        <button class="btn btn-outline btn-block" id="btn-save-config">Salvar Configuracao</button>
+      </div>
+
+      <!-- Sistema -->
+      <div class="card">
+        <div class="card-title">Sistema</div>
+        <button class="btn btn-outline btn-block" id="btn-system-info">Ler Status do Sistema</button>
+        <div id="system-info" class="sys-info"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Painel de telemetria ao vivo -->
+  <div class="telemetry" id="telemetry">
+    <div class="tel-item"><span class="tel-label">Status:</span> <span id="tel-status" class="tel-value">Parado</span></div>
+    <div class="tel-item"><span class="tel-label">Motor Esq:</span> <span id="tel-left" class="tel-value">0</span></div>
+    <div class="tel-item"><span class="tel-label">Motor Dir:</span> <span id="tel-right" class="tel-value">0</span></div>
+    <div class="tel-item"><span class="tel-label">Movendo:</span> <span id="tel-moving" class="tel-value">Nao</span></div>
+    <div class="tel-item"><span class="tel-label">Conexao:</span> <span id="tel-conn" class="tel-value">Offline</span></div>
+    <div class="tel-item"><span class="tel-label">Ultimo erro:</span> <span id="tel-api-error" class="tel-value offline">Nenhum</span></div>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
