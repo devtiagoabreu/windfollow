@@ -24,7 +24,7 @@ static const int   PWM_CHANNEL_RIGHT = 1;
 // --- Limites de velocidade (0-255) ---
 static const uint8_t PWM_MIN    = 60;   // abaixo disso o motor não gira
 static const uint8_t PWM_MAX    = 255;
-static const uint8_t PWM_DEFAULT = 150;
+static const uint8_t PWM_DEFAULT = 179;  // 70% (inicial)
 
 // --- Duração de pulso para movimentos temporizados (ms) ---
 static const unsigned long PULSE_DURATION_DEFAULT = 500;
@@ -45,10 +45,10 @@ static const uint16_t AUTO_CLEAR_MM        = 1000;
 static const uint16_t AUTO_BACKUP_MS       = 500;   // re antes de girar
 static const uint16_t AUTO_BACKUP_LONG_MS  = 800;   // re maior a cada 3 obstaculos
 static const uint16_t AUTO_BACKUP_NUDGE_MS = 350;   // re curta quando o giro nao acha saida
-static const uint8_t  AUTO_BACKUP_SPEED    = 130;
+static const uint8_t  AUTO_BACKUP_SPEED    = 179;   // PWM inicial da ré autônoma (70%)
 static const uint16_t AUTO_TURN_MIN_MS     = 450;   // gira no minimo isso antes de avaliar
 static const uint16_t AUTO_TURN_MAX_MS     = 2400;  // sem 1 m livre -> re e continua girando
-static const uint8_t  AUTO_FORWARD_SPEED   = 140;   // PWM do avanco reto
+static const uint8_t  AUTO_FORWARD_SPEED   = 179;   // PWM inicial do avanço/reconhecimento autônomo (70%)
 static const uint8_t  AUTO_TURN_SPEED      = 160;   // pivo: uma roda em re, outra em frente
 static const uint8_t  AUTO_CLEAR_SAMPLES   = 2;     // leituras seguidas acima de 1 m
 static const uint16_t AUTO_CLEAR_MAX_AGE_MS = 500;  // leitura velha nao conta como livre

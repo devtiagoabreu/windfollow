@@ -1,4 +1,4 @@
-'use strict';
+﻿'use strict';
 
 // -------------------- API --------------------
 const API = {
@@ -22,7 +22,7 @@ const API = {
 const state = {
   powerOn: true,
   speedPct: 70,
-  autoSpeed: 140,
+  autoSpeed: 179,
   leftPct: 0,
   rightPct: 0,
   autoOn: false,
@@ -43,7 +43,7 @@ const joyState = {
 function $(id) { return document.getElementById(id); }
 function pctToPwm(pct) { return Math.round((pct / 100) * 255); }
 function safe(v, d) { return (v === undefined || v === null || Number.isNaN(v)) ? d : v; }
-function fmtTemp(v) { return (v === undefined || v === null || Number.isNaN(v)) ? '--' : v.toFixed(1) + ' °C'; }
+function fmtTemp(v) { return (v === undefined || v === null || Number.isNaN(v)) ? '--' : v.toFixed(1) + ' Â°C'; }
 function fmtHum(v) { return (v === undefined || v === null || Number.isNaN(v)) ? '--' : v.toFixed(0) + ' %'; }
 function fmtPres(v) { return (v === undefined || v === null || Number.isNaN(v)) ? '--' : v.toFixed(0) + ' hPa'; }
 function fmtDist(mm) { return (mm === undefined || mm === null || !mm) ? '--' : (mm / 10).toFixed(1) + ' cm'; }
@@ -141,7 +141,7 @@ function setKnob(key, x, y) {
 
 function joyLabel(x, y, i) {
   if (i < 0.07) return 'Parado';
-  if (Math.abs(y) > Math.abs(x)) return y > 0 ? 'Frente' : 'Trás';
+  if (Math.abs(y) > Math.abs(x)) return y > 0 ? 'Frente' : 'TrÃ¡s';
   return x > 0 ? 'Direita' : 'Esquerda';
 }
 
@@ -256,7 +256,7 @@ function updateStatusLocal(dir) {
   const mov = $('home-moving');
   if (mov) mov.textContent = label;
   const dlSt = $('dl-tel-status');
-  if (dlSt) dlSt.textContent = ({ frente: 'Frente', tras: 'Trás', esquerda: 'Esquerda', direita: 'Direita', stop: 'Parado' }[dir] || 'Parado');
+  if (dlSt) dlSt.textContent = ({ frente: 'Frente', tras: 'TrÃ¡s', esquerda: 'Esquerda', direita: 'Direita', stop: 'Parado' }[dir] || 'Parado');
 }
 
 async function toggleAuto() {
@@ -288,7 +288,7 @@ function syncAutoButtons() {
 function buildAdviceMessages(s) {
   const a = s.alerts || {};
   const msgs = [];
-  if (a.fire) msgs.push('INCENDIO: temperatura subiu rapido — verifique o ambiente!');
+  if (a.fire) msgs.push('INCENDIO: temperatura subiu rapido â€” verifique o ambiente!');
   if (a.rainSensor) msgs.push('Chuva agora (sensor molhado)');
   else if (a.rain) msgs.push('Pode chover: pressao caiu ' + Math.abs(a.trend3h || 0).toFixed(1) + ' hPa/3h');
   if (a.hot) msgs.push('Calor: ligue o ar-condicionado');
@@ -300,9 +300,9 @@ function buildAdviceMessages(s) {
 function renderTicker(s) {
   const el = $('ticker-text');
   if (!el) return;
-  el.textContent = 'Temp ' + fmtTemp(s.temperature) + '  •  Umid ' + fmtHum(s.humidity) +
-    '  •  Press ' + fmtPres(s.pressure) + '  •  Dist ' + fmtDist(s.distanceMm) +
-    '  •  Autonomo ' + (s.auto ? (s.autoState || 'ON') : 'OFF');
+  el.textContent = 'Temp ' + fmtTemp(s.temperature) + '  â€¢  Umid ' + fmtHum(s.humidity) +
+    '  â€¢  Press ' + fmtPres(s.pressure) + '  â€¢  Dist ' + fmtDist(s.distanceMm) +
+    '  â€¢  Autonomo ' + (s.auto ? (s.autoState || 'ON') : 'OFF');
 }
 
 function alertSeverity(text) {
@@ -383,7 +383,7 @@ async function fetchStatus() {
   try {
     const st = await API.get('/api/motor/status');
     setOnline(true);
-    const dirMap = { 0: 'Parado', 1: 'Frente', 2: 'Trás', 3: 'Esquerda', 4: 'Direita' };
+    const dirMap = { 0: 'Parado', 1: 'Frente', 2: 'TrÃ¡s', 3: 'Esquerda', 4: 'Direita' };
     const dir = dirMap[st.direction] || 'Parado';
     const homeState = $('home-state');
     if (homeState) homeState.textContent = st.moving ? 'Andando' : 'Parado';
@@ -425,7 +425,7 @@ function notifyStuck() {
 
 // -------------------- config --------------------
 function setAutoSpeedUI(v) {
-  const val = Math.max(60, Math.min(255, parseInt(v) || 140));
+  const val = Math.max(60, Math.min(255, parseInt(v) || 179));
   state.autoSpeed = val;
   ['home-auto-speed', 'dl-auto-speed', 'cfg-auto-speed', 'dl-auto-speed-cfg'].forEach(id => {
     const el = $(id); if (el) el.value = val;
@@ -442,7 +442,7 @@ async function loadConfig() {
     const set = (id, v) => { const el = $(id); if (el && v !== undefined && v !== null) el.value = v; };
     set('cfg-pwm-min', cfg.pwmMin); set('cfg-pwm-max', cfg.pwmMax); set('cfg-pwm-default', cfg.pwmDefault);
     set('dl-pwm-min', cfg.pwmMin); set('dl-pwm-max', cfg.pwmMax); set('dl-pwm-default', cfg.pwmDefault);
-    setAutoSpeedUI(cfg.autoSpeed !== undefined ? cfg.autoSpeed : 140);
+    setAutoSpeedUI(cfg.autoSpeed !== undefined ? cfg.autoSpeed : 179);
     const mot = cfg.motorsEnabled === true || cfg.motorsEnabled === 1 || cfg.motorsEnabled === 'true';
     if ($('cfg-motors-enabled')) $('cfg-motors-enabled').checked = mot;
     if ($('dl-motors-enabled')) $('dl-motors-enabled').checked = mot;
@@ -457,7 +457,7 @@ async function saveConfig(prefix) {
     pwmMin: parseInt(get(prefix + '-pwm-min')) || 0,
     pwmMax: parseInt(get(prefix + '-pwm-max')) || 255,
     pwmDefault: parseInt(get(prefix + '-pwm-default')) || 150,
-    autoSpeed: parseInt(get(autoSpeedId)) || state.autoSpeed || 140,
+    autoSpeed: parseInt(get(autoSpeedId)) || state.autoSpeed || 179,
     motorsEnabled: $(prefix + '-motors-enabled') ? $(prefix + '-motors-enabled').checked : true
   };
   try { await API.post('/api/config', payload); setOnline(true); await loadConfig(); }
@@ -565,11 +565,11 @@ function init() {
     const sl = $(sliderId), vv = $(valId);
     if (!sl) return;
     sl.addEventListener('input', () => {
-      const v = parseInt(sl.value) || 140;
+      const v = parseInt(sl.value) || 179;
       if (vv) vv.textContent = v;
     });
     sl.addEventListener('change', async () => {
-      const v = parseInt(sl.value) || 140;
+      const v = parseInt(sl.value) || 179;
       setAutoSpeedUI(v);
       try { await API.post('/api/auto', { autoSpeed: v }); setOnline(true); }
       catch (err) { setOnline(false); }
@@ -632,3 +632,4 @@ function init() {
 }
 
 document.addEventListener('DOMContentLoaded', init);
+

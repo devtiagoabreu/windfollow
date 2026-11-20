@@ -11,6 +11,24 @@ e soluções, arquivos tocados.
 
 ## Histórico
 
+### 2026-11-20 20:01 - fix(irobot): set default speed to 70 percent
+
+**Area:** irobot
+
+**Feito:**
+- Velocidade inicial manual e autonoma ajustada para 70% (179 PWM) no firmware, HTML/JS e WebAssets
+- Constantes e defaults de autoSpeed/pwmDefault alinhados, incluindo re autonoma
+- Push pendente do commit anterior mantido para envio neste save
+
+**Dificuldades e solucoes:**
+- nenhuma
+
+**Arquivos:**
+- `firmware/irobot/HardwareConfig.h`
+- `firmware/irobot/WebAssets.h`
+- `firmware/irobot/web/index.html`
+- `firmware/irobot/web/js/app.js`
+
 ### 2026-11-20 19:48 - fix(irobot): add configurable auto speed and repair scan flow
 
 **Area:** irobot
