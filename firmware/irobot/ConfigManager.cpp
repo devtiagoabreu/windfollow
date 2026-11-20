@@ -18,8 +18,10 @@ RobotConfig ConfigManager::load() {
   size_t len = _prefs.getBytesLength(NVS_KEY);
   if (len == sizeof(RobotConfig)) {
     _prefs.getBytes(NVS_KEY, &cfg, sizeof(RobotConfig));
+    // Migra config recente que ficou rápida demais no autônomo (default 179 -> 140)
+    if (cfg.autoSpeed == 179) cfg.autoSpeed = AUTO_FORWARD_SPEED;
   } else {
-    // dados invÃ¡lidos ou ausentes -> defaults
+    // dados inválidos ou ausentes -> defaults
     cfg = RobotConfig();
   }
   _prefs.end();

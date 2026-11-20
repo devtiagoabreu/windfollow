@@ -8,25 +8,25 @@
 // Motor esquerdo (roda esquerda)
 static const int8_t M_LEFT_IN1  = 26;   // Sentido 1
 static const int8_t M_LEFT_IN2  = 25;   // Sentido 2
-static const int8_t M_LEFT_ENA  = 27;   // PWM / habilita√ß√£o (era bot√£o 1)
+static const int8_t M_LEFT_ENA  = 27;   // PWM / habilitaÁ„o (era bot„o 1)
 
 // Motor direito (roda direita)
 static const int8_t M_RIGHT_IN3 = 32;   // Sentido 1
 static const int8_t M_RIGHT_IN4 = 33;   // Sentido 2
-static const int8_t M_RIGHT_ENB = 14;   // PWM / habilita√ß√£o (era bot√£o 2)
+static const int8_t M_RIGHT_ENB = 14;   // PWM / habilitaÁ„o (era bot„o 2)
 
-// --- Configura√ß√£o PWM ---
+// --- ConfiguraÁ„o PWM ---
 static const int   PWM_FREQ    = 1000;  // Hz
 static const int   PWM_RES     = 8;     // bits (0-255)
 static const int   PWM_CHANNEL_LEFT  = 0;
 static const int   PWM_CHANNEL_RIGHT = 1;
 
 // --- Limites de velocidade (0-255) ---
-static const uint8_t PWM_MIN    = 60;   // abaixo disso o motor n√£o gira
+static const uint8_t PWM_MIN    = 60;   // abaixo disso o motor n„o gira
 static const uint8_t PWM_MAX    = 255;
 static const uint8_t PWM_DEFAULT = 179;  // 70% (inicial)
 
-// --- Dura√ß√£o de pulso para movimentos temporizados (ms) ---
+// --- DuraÁ„o de pulso para movimentos temporizados (ms) ---
 static const unsigned long PULSE_DURATION_DEFAULT = 500;
 
 // --- Barramento I2C dos sensores de ambiente ---
@@ -45,10 +45,10 @@ static const uint16_t AUTO_CLEAR_MM        = 1000;
 static const uint16_t AUTO_BACKUP_MS       = 500;   // re antes de girar
 static const uint16_t AUTO_BACKUP_LONG_MS  = 800;   // re maior a cada 3 obstaculos
 static const uint16_t AUTO_BACKUP_NUDGE_MS = 350;   // re curta quando o giro nao acha saida
-static const uint8_t  AUTO_BACKUP_SPEED    = 179;   // PWM inicial da r√© aut√¥noma (70%)
+static const uint8_t  AUTO_BACKUP_SPEED    = 140;   // PWM inicial da re autonoma (~55%)
 static const uint16_t AUTO_TURN_MIN_MS     = 450;   // gira no minimo isso antes de avaliar
 static const uint16_t AUTO_TURN_MAX_MS     = 2400;  // sem 1 m livre -> re e continua girando
-static const uint8_t  AUTO_FORWARD_SPEED   = 179;   // PWM inicial do avan√ßo/reconhecimento aut√¥nomo (70%)
+static const uint8_t  AUTO_FORWARD_SPEED   = 140;   // PWM inicial do avanco/reconhecimento autonomo (~55%)
 static const uint8_t  AUTO_TURN_SPEED      = 160;   // pivo: uma roda em re, outra em frente
 static const uint8_t  AUTO_CLEAR_SAMPLES   = 2;     // leituras seguidas acima de 1 m
 static const uint16_t AUTO_CLEAR_MAX_AGE_MS = 500;  // leitura velha nao conta como livre
@@ -85,7 +85,7 @@ static const float    ENV_RAIN_HUM_30M_PCT = 70.0f;
 // #define IROBOT_FLAME_SENSOR_PIN  39
 // #define IROBOT_RAIN_WET_ADC      1800
 // #define IROBOT_FLAME_ADC         1000
-// --- Estrutura de configura√ß√£o salva em NVS ---
+// --- Estrutura de configuraÁ„o salva em NVS ---
 struct RobotConfig {
   int8_t  gpioLeftIn1  = M_LEFT_IN1;
   int8_t  gpioLeftIn2  = M_LEFT_IN2;

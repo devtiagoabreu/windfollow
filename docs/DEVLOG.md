@@ -11,6 +11,24 @@ e soluções, arquivos tocados.
 
 ## Histórico
 
+### 2026-11-20 20:31 - fix(irobot): lower autonomous speed defaults
+
+**Area:** irobot
+
+**Feito:**
+- reduce AUTO_FORWARD_SPEED/AUTO_BACKUP_SPEED and autoSpeed default to 140
+- update web/UI defaults and regenerate WebAssets.h
+
+**Dificuldades e solucoes:**
+- existing NVS configs kept autoSpeed 179 -> migrate saved 179 to AUTO_FORWARD_SPEED on load
+
+**Arquivos:**
+- `firmware/irobot/ConfigManager.cpp`
+- `firmware/irobot/HardwareConfig.h`
+- `firmware/irobot/WebAssets.h`
+- `firmware/irobot/web/index.html`
+- `firmware/irobot/web/js/app.js`
+
 ### 2026-11-20 20:01 - fix(irobot): set default speed to 70 percent
 
 **Area:** irobot
