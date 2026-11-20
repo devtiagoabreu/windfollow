@@ -22,6 +22,7 @@ const API = {
 const state = {
   powerOn: true,
   speedPct: 70,
+  autoSpeed: 140,
   leftPct: 0,
   rightPct: 0,
   autoOn: false,
@@ -361,6 +362,7 @@ async function fetchSensors() {
     setOnline(true);
     state.autoOn = s.auto === true;
     syncAutoButtons();
+    if (s.autoSpeed !== undefined) setAutoSpeedUI(s.autoSpeed);
     const msgs = buildAdviceMessages(s);
     renderTicker(s);
     renderHeaderAlerts(msgs);
@@ -422,13 +424,25 @@ function notifyStuck() {
 }
 
 // -------------------- config --------------------
+function setAutoSpeedUI(v) {
+  const val = Math.max(60, Math.min(255, parseInt(v) || 140));
+  state.autoSpeed = val;
+  ['home-auto-speed', 'dl-auto-speed', 'cfg-auto-speed', 'dl-auto-speed-cfg'].forEach(id => {
+    const el = $(id); if (el) el.value = val;
+  });
+  ['home-auto-speed-val', 'dl-auto-speed-val'].forEach(id => {
+    const el = $(id); if (el) el.textContent = val;
+  });
+}
+
 async function loadConfig() {
   try {
     const cfg = await API.get('/api/config');
     state.config = cfg;
-    const set = (id, v) => { const el = $(id); if (el) el.value = v; };
+    const set = (id, v) => { const el = $(id); if (el && v !== undefined && v !== null) el.value = v; };
     set('cfg-pwm-min', cfg.pwmMin); set('cfg-pwm-max', cfg.pwmMax); set('cfg-pwm-default', cfg.pwmDefault);
     set('dl-pwm-min', cfg.pwmMin); set('dl-pwm-max', cfg.pwmMax); set('dl-pwm-default', cfg.pwmDefault);
+    setAutoSpeedUI(cfg.autoSpeed !== undefined ? cfg.autoSpeed : 140);
     const mot = cfg.motorsEnabled === true || cfg.motorsEnabled === 1 || cfg.motorsEnabled === 'true';
     if ($('cfg-motors-enabled')) $('cfg-motors-enabled').checked = mot;
     if ($('dl-motors-enabled')) $('dl-motors-enabled').checked = mot;
@@ -438,10 +452,12 @@ async function loadConfig() {
 
 async function saveConfig(prefix) {
   const get = id => { const el = $(id); return el ? el.value : undefined; };
+  const autoSpeedId = prefix === 'dl' ? 'dl-auto-speed-cfg' : 'cfg-auto-speed';
   const payload = {
     pwmMin: parseInt(get(prefix + '-pwm-min')) || 0,
     pwmMax: parseInt(get(prefix + '-pwm-max')) || 255,
     pwmDefault: parseInt(get(prefix + '-pwm-default')) || 150,
+    autoSpeed: parseInt(get(autoSpeedId)) || state.autoSpeed || 140,
     motorsEnabled: $(prefix + '-motors-enabled') ? $(prefix + '-motors-enabled').checked : true
   };
   try { await API.post('/api/config', payload); setOnline(true); await loadConfig(); }
@@ -544,6 +560,23 @@ function init() {
   };
   bindSpeed('home-speed', 'home-speed-val');
   bindSpeed('dl-speed', 'dl-speed-val');
+
+  const bindAutoSpeed = (sliderId, valId) => {
+    const sl = $(sliderId), vv = $(valId);
+    if (!sl) return;
+    sl.addEventListener('input', () => {
+      const v = parseInt(sl.value) || 140;
+      if (vv) vv.textContent = v;
+    });
+    sl.addEventListener('change', async () => {
+      const v = parseInt(sl.value) || 140;
+      setAutoSpeedUI(v);
+      try { await API.post('/api/auto', { autoSpeed: v }); setOnline(true); }
+      catch (err) { setOnline(false); }
+    });
+  };
+  bindAutoSpeed('home-auto-speed', 'home-auto-speed-val');
+  bindAutoSpeed('dl-auto-speed', 'dl-auto-speed-val');
 
   const bindDiffSlider = (id, valId, which) => {
     const sl = $(id), vv = $(valId);

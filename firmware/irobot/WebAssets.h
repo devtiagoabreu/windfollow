@@ -96,6 +96,11 @@ static const char* index_html = R"rawliteral(
                 <input type="range" id="home-speed" min="0" max="100" value="70" class="hslider">
                 <span id="home-speed-val" class="speed-val">70%</span>
               </div>
+              <div class="speed-row">
+                <label class="speed-label">Auto</label>
+                <input type="range" id="home-auto-speed" min="60" max="255" value="140" class="hslider">
+                <span id="home-auto-speed-val" class="speed-val">140</span>
+              </div>
             </div>
             <div class="card info-card">
               <div class="card-title">Sensores</div>
@@ -157,6 +162,11 @@ static const char* index_html = R"rawliteral(
               <input type="range" id="dl-speed" min="0" max="100" value="70" class="hslider">
               <span id="dl-speed-val" class="speed-val">70%</span>
             </div>
+            <div class="slider-row">
+              <label class="slider-label">Autonomo</label>
+              <input type="range" id="dl-auto-speed" min="60" max="255" value="140" class="hslider">
+              <span id="dl-auto-speed-val" class="speed-val">140</span>
+            </div>
           </div>
 
           <div class="card diff-card">
@@ -179,6 +189,7 @@ static const char* index_html = R"rawliteral(
             <div class="config-row"><label>Min</label><input type="number" id="dl-pwm-min" min="0" max="255" value="60" class="cfg-input"></div>
             <div class="config-row"><label>Max</label><input type="number" id="dl-pwm-max" min="0" max="255" value="255" class="cfg-input"></div>
             <div class="config-row"><label>Default</label><input type="number" id="dl-pwm-default" min="0" max="255" value="150" class="cfg-input"></div>
+            <div class="config-row"><label>Vel. Autonomo</label><input type="number" id="dl-auto-speed-cfg" min="60" max="255" value="140" class="cfg-input"></div>
             <div class="config-row"><label>Motores</label><label class="switch inline"><input type="checkbox" id="dl-motors-enabled" checked><span class="slider-round"></span></label></div>
             <button class="btn btn-outline btn-block" id="dl-save-config">Salvar Configuracao</button>
           </div>
@@ -262,6 +273,7 @@ static const char* index_html = R"rawliteral(
           <div class="config-row"><label>Min</label><input type="number" id="cfg-pwm-min" min="0" max="255" value="60" class="cfg-input"></div>
           <div class="config-row"><label>Max</label><input type="number" id="cfg-pwm-max" min="0" max="255" value="255" class="cfg-input"></div>
           <div class="config-row"><label>Default</label><input type="number" id="cfg-pwm-default" min="0" max="255" value="150" class="cfg-input"></div>
+          <div class="config-row"><label>Vel. Autonomo</label><input type="number" id="cfg-auto-speed" min="60" max="255" value="140" class="cfg-input"></div>
           <div class="config-row"><label>Motores habilitados</label><label class="switch inline"><input type="checkbox" id="cfg-motors-enabled" checked><span class="slider-round"></span></label></div>
           <button class="btn btn-outline btn-block" id="cfg-save-pwm">Salvar PWM</button>
         </div>
@@ -639,6 +651,7 @@ const API = {
 const state = {
   powerOn: true,
   speedPct: 70,
+  autoSpeed: 140,
   leftPct: 0,
   rightPct: 0,
   autoOn: false,
@@ -978,6 +991,7 @@ async function fetchSensors() {
     setOnline(true);
     state.autoOn = s.auto === true;
     syncAutoButtons();
+    if (s.autoSpeed !== undefined) setAutoSpeedUI(s.autoSpeed);
     const msgs = buildAdviceMessages(s);
     renderTicker(s);
     renderHeaderAlerts(msgs);
@@ -1039,13 +1053,25 @@ function notifyStuck() {
 }
 
 // -------------------- config --------------------
+function setAutoSpeedUI(v) {
+  const val = Math.max(60, Math.min(255, parseInt(v) || 140));
+  state.autoSpeed = val;
+  ['home-auto-speed', 'dl-auto-speed', 'cfg-auto-speed', 'dl-auto-speed-cfg'].forEach(id => {
+    const el = $(id); if (el) el.value = val;
+  });
+  ['home-auto-speed-val', 'dl-auto-speed-val'].forEach(id => {
+    const el = $(id); if (el) el.textContent = val;
+  });
+}
+
 async function loadConfig() {
   try {
     const cfg = await API.get('/api/config');
     state.config = cfg;
-    const set = (id, v) => { const el = $(id); if (el) el.value = v; };
+    const set = (id, v) => { const el = $(id); if (el && v !== undefined && v !== null) el.value = v; };
     set('cfg-pwm-min', cfg.pwmMin); set('cfg-pwm-max', cfg.pwmMax); set('cfg-pwm-default', cfg.pwmDefault);
     set('dl-pwm-min', cfg.pwmMin); set('dl-pwm-max', cfg.pwmMax); set('dl-pwm-default', cfg.pwmDefault);
+    setAutoSpeedUI(cfg.autoSpeed !== undefined ? cfg.autoSpeed : 140);
     const mot = cfg.motorsEnabled === true || cfg.motorsEnabled === 1 || cfg.motorsEnabled === 'true';
     if ($('cfg-motors-enabled')) $('cfg-motors-enabled').checked = mot;
     if ($('dl-motors-enabled')) $('dl-motors-enabled').checked = mot;
@@ -1055,10 +1081,12 @@ async function loadConfig() {
 
 async function saveConfig(prefix) {
   const get = id => { const el = $(id); return el ? el.value : undefined; };
+  const autoSpeedId = prefix === 'dl' ? 'dl-auto-speed-cfg' : 'cfg-auto-speed';
   const payload = {
     pwmMin: parseInt(get(prefix + '-pwm-min')) || 0,
     pwmMax: parseInt(get(prefix + '-pwm-max')) || 255,
     pwmDefault: parseInt(get(prefix + '-pwm-default')) || 150,
+    autoSpeed: parseInt(get(autoSpeedId)) || state.autoSpeed || 140,
     motorsEnabled: $(prefix + '-motors-enabled') ? $(prefix + '-motors-enabled').checked : true
   };
   try { await API.post('/api/config', payload); setOnline(true); await loadConfig(); }
@@ -1161,6 +1189,23 @@ function init() {
   };
   bindSpeed('home-speed', 'home-speed-val');
   bindSpeed('dl-speed', 'dl-speed-val');
+
+  const bindAutoSpeed = (sliderId, valId) => {
+    const sl = $(sliderId), vv = $(valId);
+    if (!sl) return;
+    sl.addEventListener('input', () => {
+      const v = parseInt(sl.value) || 140;
+      if (vv) vv.textContent = v;
+    });
+    sl.addEventListener('change', async () => {
+      const v = parseInt(sl.value) || 140;
+      setAutoSpeedUI(v);
+      try { await API.post('/api/auto', { autoSpeed: v }); setOnline(true); }
+      catch (err) { setOnline(false); }
+    });
+  };
+  bindAutoSpeed('home-auto-speed', 'home-auto-speed-val');
+  bindAutoSpeed('dl-auto-speed', 'dl-auto-speed-val');
 
   const bindDiffSlider = (id, valId, which) => {
     const sl = $(id), vv = $(valId);

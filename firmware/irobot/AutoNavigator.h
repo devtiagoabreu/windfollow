@@ -5,6 +5,7 @@
 #include "HardwareConfig.h"
 #include "MotorEngine.h"
 #include "SensorService.h"
+#include "ConfigManager.h"
 
 // Modo autonomo do Prototipo-67 (roda traseira fixa, sem encoder).
 //
@@ -52,7 +53,7 @@ public:
   static const uint16_t SCAN_SETTLE_MS    = 200; // ms de assentamento apos giro
   static const uint16_t SCAN_MAX_MM       = 8000; // sem alvo = distancia maxima
 
-  bool begin(MotorEngine* engine, SensorService* sensors);
+  bool begin(MotorEngine* engine, SensorService* sensors, ConfigManager* configMgr);
   void loop();
 
   bool setEnabled(bool on);
@@ -74,6 +75,7 @@ public:
 private:
   MotorEngine* _engine = nullptr;
   SensorService* _sensors = nullptr;
+  ConfigManager* _configMgr = nullptr;
 
   bool _enabled = false;
   bool _stuck = false;
@@ -92,10 +94,13 @@ private:
   // Reconhecimento / heading estimado (sem encoder)
   ScanEntry _scan[SCAN_STEPS];
   uint8_t _scanStep = 0;
-  uint16_t _headingDeg = 0;    // direcao estimada do robô (graus, 0 = inicial)
+  uint16_t _headingDeg = 0;    // direção estimada do robô (graus, 0 = inicial)
   uint16_t _bestAngleDeg = 0;
   uint16_t _bestDistanceMm = 0;
   bool _scanDone = false;
+  bool _scanSettling = false;
+  mutable uint8_t _autoSpeedCache = AUTO_FORWARD_SPEED;
+  mutable uint32_t _autoSpeedCacheMs = 0;
 
   void enter(State s);
   void startForward();
@@ -116,6 +121,7 @@ private:
   void updateHeading(int16_t deltaDeg);
   uint16_t scanBestAngle() const;
   bool tofReady() const;
+  uint8_t autoMoveSpeed() const;
 };
 
 #endif // AUTO_NAVIGATOR_H

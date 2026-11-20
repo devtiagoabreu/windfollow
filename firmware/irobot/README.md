@@ -185,7 +185,7 @@ mesmo esquema de leitura analógica.
 - **Avisos**: lista com cor por severidade (crítico = incêndio/chuva agora,
   atenção = calor/chuva/ar seco, informativo = frio) e linha de tendência de
   pressão (30 min e 3 h).
-- **Autônomo**: liga/desliga o desvio de obstáculos.
+- **Autônomo**: liga/desliga o desvio de obstáculos e permite ajustar a velocidade do modo autônomo.
 - **Banners**: “Robô enroscado” (autônomo desligado após 100 tentativas) e
   “Possível incêndio” (vermelho). Ambos vibram e apitam; se a permissão de
   notificação estiver concedida, também geram notificação do navegador.

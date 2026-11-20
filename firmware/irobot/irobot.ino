@@ -142,7 +142,7 @@ void setup() {
   } else {
     Serial.println("Sensores I2C inicializados");
   }
-  if (!autoNav.begin(&motorEngine, &sensorService)) {
+  if (!autoNav.begin(&motorEngine, &sensorService, &configMgr)) {
     Serial.println("Falha ao iniciar AutoNavigator!");
   }
 

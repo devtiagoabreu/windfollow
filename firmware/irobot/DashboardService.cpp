@@ -236,6 +236,7 @@ void DashboardService::handleConfigPost() {
   if (doc.containsKey("pwmDefault")) cfg.pwmDefault = doc["pwmDefault"].as<uint8_t>();
   if (doc.containsKey("pulseDurationMs")) cfg.pulseDurationMs = doc["pulseDurationMs"].as<unsigned long>();
   if (doc.containsKey("motorsEnabled")) cfg.motorsEnabled = doc["motorsEnabled"].as<bool>();
+  if (doc.containsKey("autoSpeed")) cfg.autoSpeed = doc["autoSpeed"].as<uint8_t>();
 
   if (_configMgr->save(cfg)) {
     sendWithCors(200, "application/json", "{\"ok\":true}");
@@ -261,6 +262,7 @@ void DashboardService::handleSensors() {
   doc["stuck"] = _autoNav ? _autoNav->stuck() : false;
   doc["stuckSeq"] = _autoNav ? _autoNav->stuckSeq() : 0;
   doc["avoidCount"] = _autoNav ? _autoNav->avoidCount() : 0;
+  doc["autoSpeed"] = _configMgr ? _configMgr->load().autoSpeed : AUTO_FORWARD_SPEED;
   doc["uptime"] = millis();
 
   JsonObject alerts = doc.createNestedObject("alerts");
@@ -282,13 +284,14 @@ void DashboardService::handleSensors() {
 
 void DashboardService::handleAutoGet() {
   Serial.println(">>> /api/auto GET");
-  DynamicJsonDocument doc(128);
+  DynamicJsonDocument doc(192);
   doc["enabled"] = _autoNav ? _autoNav->enabled() : false;
   doc["state"] = _autoNav ? _autoNav->stateName() : "off";
   doc["tof"] = _sensors ? _sensors->tofPresent() : false;
   doc["stuck"] = _autoNav ? _autoNav->stuck() : false;
   doc["stuckSeq"] = _autoNav ? _autoNav->stuckSeq() : 0;
   doc["avoidCount"] = _autoNav ? _autoNav->avoidCount() : 0;
+  doc["autoSpeed"] = _configMgr ? _configMgr->load().autoSpeed : AUTO_FORWARD_SPEED;
   String json;
   serializeJson(doc, json);
   sendWithCors(200, "application/json", json);
@@ -309,18 +312,28 @@ void DashboardService::handleAutoPost() {
     return;
   }
 
-  bool on = doc["enabled"] | false;
-  if (!_autoNav->setEnabled(on)) {
-    sendWithCors(409, "application/json", "{\"error\":\"VL53L0X ausente\"}");
-    return;
+  if (doc.containsKey("autoSpeed") && _configMgr) {
+    RobotConfig cfg = _configMgr->load();
+    cfg.autoSpeed = doc["autoSpeed"].as<uint8_t>();
+    _configMgr->save(cfg);
   }
 
-  DynamicJsonDocument out(128);
+  bool on = _autoNav->enabled();
+  if (doc.containsKey("enabled")) {
+    on = doc["enabled"] | false;
+    if (!_autoNav->setEnabled(on)) {
+      sendWithCors(409, "application/json", "{\"error\":\"VL53L0X ausente\"}");
+      return;
+    }
+  }
+
+  DynamicJsonDocument out(192);
   out["ok"] = true;
   out["enabled"] = _autoNav->enabled();
   out["state"] = _autoNav->stateName();
   out["stuck"] = _autoNav->stuck();
   out["stuckSeq"] = _autoNav->stuckSeq();
+  out["autoSpeed"] = _configMgr ? _configMgr->load().autoSpeed : AUTO_FORWARD_SPEED;
   String json;
   serializeJson(out, json);
   sendWithCors(200, "application/json", json);
@@ -361,6 +374,7 @@ String DashboardService::generateConfigJson() {
   doc["pwmMin"] = cfg.pwmMin;
   doc["pwmMax"] = cfg.pwmMax;
   doc["pwmDefault"] = cfg.pwmDefault;
+  doc["autoSpeed"] = cfg.autoSpeed;
   doc["pulseDurationMs"] = cfg.pulseDurationMs;
   doc["motorsEnabled"] = cfg.motorsEnabled;
   doc["gpioLeftIn1"] = cfg.gpioLeftIn1;

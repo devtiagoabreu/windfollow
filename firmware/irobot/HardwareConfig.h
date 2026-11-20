@@ -98,6 +98,7 @@ struct RobotConfig {
   uint8_t pwmDefault   = PWM_DEFAULT;
   unsigned long pulseDurationMs = PULSE_DURATION_DEFAULT;
   bool    motorsEnabled = true;
+  uint8_t autoSpeed    = AUTO_FORWARD_SPEED;
 };
 
 // --- Comandos de movimento diferencial ---

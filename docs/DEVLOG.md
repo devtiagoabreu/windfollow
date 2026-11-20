@@ -11,6 +11,29 @@ e soluções, arquivos tocados.
 
 ## Histórico
 
+### 2026-11-20 19:48 - fix(irobot): add configurable auto speed and repair scan flow
+
+**Area:** irobot
+
+**Feito:**
+- Reparo do reconhecimento 360 ao ligar autonomo com espera de leitura ToF fresca, giros/assentamento e alinhamento nao bloqueantes escalados pela velocidade
+- Velocidade do modo autonomo configuravel (autoSpeed em NVS/config/API e sliders em Home, DL e Config) aplicada em frente, re, giro e scan
+- WebAssets.h regenerado e README atualizado
+
+**Dificuldades e solucoes:**
+- Compilacao nao validada localmente porque os arduino-cli encontrados falham com erro de extracao PyInstaller (libcrypto-3.dll/VCRUNTIME140.dll) -> codigo revisado estaticamente, pronto para compilar/gravar com toolchain funcional
+
+**Arquivos:**
+- `firmware/irobot/AutoNavigator.cpp`
+- `firmware/irobot/AutoNavigator.h`
+- `firmware/irobot/DashboardService.cpp`
+- `firmware/irobot/HardwareConfig.h`
+- `firmware/irobot/README.md`
+- `firmware/irobot/WebAssets.h`
+- `firmware/irobot/irobot.ino`
+- `firmware/irobot/web/index.html`
+- `firmware/irobot/web/js/app.js`
+
 ### 2026-11-18 17:38 - feat(msa): lista redes wifi no modo cliente
 
 **Area:** msa
