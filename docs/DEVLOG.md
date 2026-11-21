@@ -11,6 +11,21 @@ e soluções, arquivos tocados.
 
 ## Histórico
 
+### 2026-11-20 23:55 - docs(irobot): registra aprendizados da sessão de UI, controles e cache PWA
+
+**Area:** docs
+
+**Feito:**
+- Adicionada seção em docs/LICOES_APRENDIDAS com sincronização do preview e paridade do mock
+- Documentada inversão de sentidos separada entre web (joystick/comandos) e autônomo (AutoNavigator)
+- Registrados ajustes mobile da Home e lições sobre cache do service worker/PWA, regeneração de WebAssets e verificação de gravação
+
+**Dificuldades e solucoes:**
+- Problemas envolveram camadas distintas (UI web, firmware autônomo e cache PWA) que podem mascarar correções -> consolidados em regras práticas e checklist na documentação de lições aprendidas
+
+**Arquivos:**
+- `docs/LICOES_APRENDIDAS.md`
+
 ### 2026-11-20 23:44 - fix(irobot): bump service worker cache to force UI reload
 
 **Area:** irobot

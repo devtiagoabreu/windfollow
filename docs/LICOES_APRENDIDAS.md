@@ -211,3 +211,48 @@ arduino-cli compile --fqbn esp32:esp32:esp32 --output-dir "$env:TEMP\irobot-buil
 - Medição numérica do DOM em vez de confiar apenas em screenshots.
 - Preview local com mock para iterar na UI sem ligar o robô.
 - Commit + push + DEVLOG ao final de cada tarefa.
+
+## 11. Sessão iRobot — preview, inversão de sentidos, mobile e cache PWA (nov/2026)
+
+### 11.1 Preview (`firmware/irobot/preview/`) espelhando a UI da placa
+
+- `firmware/irobot/web/*` é a UI embarcada (gera `WebAssets.h`); `firmware/irobot/preview/*` é simulador local e diverge fácil.
+- Ao mudar UI/JS/CSS, sincronizar preview a partir de `web/` e reaplicar partes exclusivas do preview:
+  - paths relativos (`manifest.json`, ícones, `style.css`, `app.js`) em vez de `/...` (quebra em `file://`);
+  - banner “PREVIEW LOCAL…” e `<title>` de preview;
+  - `<script src="mock.js"></script>` carregado antes de `app.js`.
+- `preview/mock.js` intercepta `fetch` e precisa cobrir os endpoints/contratos usados pela UI atual (ex.: `/api/auto` GET/POST, `autoSpeed` em `/api/config` e `/api/sensors`, defaults coerentes — manual 179/PWM e autônomo 140). Sem isso o preview não representa estados/controles novos.
+- Cenários úteis: `?alerts=1`, `?fire=1`, `?stuck=1`. O mock remove service workers para evitar cache antigo.
+
+### 11.2 Inversão de sentidos: manual e autônomo são caminhos separados
+
+Ajustar apenas a interface web **não** corrige o modo autônomo, e vice-versa.
+
+- **Manual (web, `firmware/irobot/web/js/app.js`)**
+  - Comandos direcionais (`sendDir`): mapear direção lógica para comando de motor antes do POST `/api/motor/move` (ex.: frente↔trás, esquerda↔direita), mantendo `updateStatusLocal(dir)` com a direção pedida para a UI refletir o botão/ação do usuário.
+  - Joystick diferencial: o mix L/R define o giro; inverter esquerda/direita exigiu trocar os termos (`left = j.y + j.x`, `right = j.y - j.x`) mantendo normalização/intensidade e envio PWM real.
+  - Frente/trás do joystick: inverter o eixo/mapeamento de saída conforme a montagem, preservando leitura/labels coerentes.
+- **Autônomo (firmware, `firmware/irobot/AutoNavigator.cpp`)**
+  - Avanço/ré: `startForward()` e `startBackup()` escolhem `RobotDirection`/sentido real dos motores (independente do mapeamento feito no JS).
+  - Giro/pivô: `startTurn()` aplica `moveDifferential` com sinais opostos por lado; inverter L/R troca qual lado recebe +PWM/-PWM. Mensagens de log do lado lógico devem acompanhar se usadas para diagnóstico.
+- Regra prática: ao “inverter frente/trás” ou “esquerda/direita”, revisar `web/js/app.js` (joystick + `sendDir`), `AutoNavigator.cpp` (forward/backup/turn) e, se aplicável, semântica de telemetria.
+
+### 11.3 Ajustes de UI mobile (Home)
+
+- Removido o card “Botões de Direção” da Home para liberar espaço; controles principais concentrados em joystick, comandos (autônomo/velocidades) e faixas de sensores/status.
+- Ticker/header reduzidos e controles ampliados para toque (joystick maior, sliders/`thumb`/linhas de velocidade com área útil maior, textos/valores mais legíveis).
+- `center-col`/`home-bottom` ajustados para ocupar o espaço disponível; media query de paisagem baixa (`max-height`) afinada para não sacrificar usabilidade dos controles.
+- Manter validação em resoluções paisagem comuns (ex.: 667×375, 844×390, 960×540) medindo DOM quando screenshots não forem conclusivos.
+
+### 11.4 PWA/service worker: cache antigo pode mascarar firmware atualizado
+
+- `firmware/irobot/web/sw.js` usa cache-first versionado (`CACHE = 'irobot-vN'`). Celular/PWA pode continuar servindo UI antiga após gravar novo firmware.
+- `esptool` pode reportar “No changed sectors found…”/hash verificado quando o binário na placa já é idêntico — isso não significa que o cliente web esteja atualizado.
+- Ao alterar assets embarcados: incrementar `CACHE` (ex.: v7→v8) em `web/sw.js` e `preview/sw.js`, regenerar `WebAssets.h` (`tools/generate_web_assets.ps1` em `firmware/irobot`), compilar/gravar. Orientar usuário a fechar/reabrir ou limpar dados/cache do site/PWA.
+- Sempre regerar `WebAssets.h` depois de editar `web/`; nunca editar o header gerado manualmente.
+
+### 11.5 Edição e gravação (lições práticas)
+
+- Substituições multiline no PowerShell podem falhar por diferenças de fim de linha/encoding (CRLF) ou blocos que não batem; validar com `Select-String`/leitura de trechos e preferir edições pontuais (`edit`) quando o match exato é conhecido.
+- Antes de gravar: `tools/flash.ps1 -Sketch irobot -DetectOnly` para confirmar porta/chip (COM muda). Compilar/gravar com o perfil correto e regenerar assets antes do flash.
+- Se “parece que não gravou”: conferir saída do esptool (setores alterados vs verificados), versão do cache do SW no cliente e recarregar/limpar cache do PWA.
