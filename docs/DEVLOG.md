@@ -11,6 +11,24 @@ e soluções, arquivos tocados.
 
 ## Histórico
 
+### 2026-11-20 23:35 - fix(irobot): invert left/right in joystick and autonomous mode
+
+**Area:** irobot
+
+**Feito:**
+- Inverted joystick differential left/right mixing and directional left/right commands in web UI
+- Inverted autonomous turn directions and log label in AutoNavigator
+- Regenerated WebAssets.h, synced preview, and flashed firmware to COM9
+
+**Dificuldades e solucoes:**
+- Manual and autonomous left/right mappings were separate (web differential/dir vs AutoNavigator turn logic) -> applied inversions in joystick mix, dir command map, and autonomous turn side behavior
+
+**Arquivos:**
+- `firmware/irobot/AutoNavigator.cpp`
+- `firmware/irobot/WebAssets.h`
+- `firmware/irobot/preview/app.js`
+- `firmware/irobot/web/js/app.js`
+
 ### 2026-11-20 23:15 - fix(irobot): invert autonomous front/back direction
 
 **Area:** irobot

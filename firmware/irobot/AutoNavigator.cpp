@@ -68,9 +68,9 @@ void AutoNavigator::startTurn() {
   _lastTurnLogMs = 0;
   uint8_t s = autoMoveSpeed();
   if (_side == 0) {
-    _engine->moveDifferential(-(int16_t)s, (int16_t)s);
-  } else {
     _engine->moveDifferential((int16_t)s, -(int16_t)s);
+  } else {
+    _engine->moveDifferential(-(int16_t)s, (int16_t)s);
   }
   _clearStreak = 0;
   enter(State::TURN);
@@ -112,7 +112,7 @@ void AutoNavigator::handleObstacle() {
   Serial.print(" - re ");
   Serial.print(back);
   Serial.print(" ms, girando pela ");
-  Serial.println(_side == 0 ? "esquerda" : "direita");
+  Serial.println(_side == 0 ? "direita" : "esquerda");
 
   startBackup(back);
 }

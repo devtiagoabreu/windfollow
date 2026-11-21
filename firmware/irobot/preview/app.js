@@ -164,8 +164,8 @@ function sendJoystick(key) {
   const j = joyState[key];
   if (!j.active) return;
   const maxPwm = pctToPwm(state.speedPct);
-  let left = j.y - j.x;
-  let right = j.y + j.x;
+  let left = j.y + j.x;
+  let right = j.y - j.x;
   const mag = Math.max(Math.abs(left), Math.abs(right), 1);
   left = (left / mag) * j.intensity;
   right = (right / mag) * j.intensity;
@@ -234,7 +234,7 @@ async function sendDifferential(left, right, force) {
 
 async function sendDir(dir) {
   const speed = pctToPwm(state.speedPct);
-  const cmd = dir === 'frente' ? 'tras' : dir === 'tras' ? 'frente' : dir;
+  const cmd = dir === 'frente' ? 'tras' : dir === 'tras' ? 'frente' : dir === 'esquerda' ? 'direita' : dir === 'direita' ? 'esquerda' : dir;
   if (cmd === state.lastSent.dir && speed === state.lastSent.speed && state.lastSent.mode === 'dir') return;
   try {
     await API.post('/api/motor/move', { direction: cmd, speed });
