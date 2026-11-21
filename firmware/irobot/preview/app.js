@@ -43,7 +43,7 @@ const joyState = {
 function $(id) { return document.getElementById(id); }
 function pctToPwm(pct) { return Math.round((pct / 100) * 255); }
 function safe(v, d) { return (v === undefined || v === null || Number.isNaN(v)) ? d : v; }
-function fmtTemp(v) { return (v === undefined || v === null || Number.isNaN(v)) ? '--' : v.toFixed(1) + ' °C'; }
+function fmtTemp(v) { return (v === undefined || v === null || Number.isNaN(v)) ? '--' : v.toFixed(1) + ' Â°C'; }
 function fmtHum(v) { return (v === undefined || v === null || Number.isNaN(v)) ? '--' : v.toFixed(0) + ' %'; }
 function fmtPres(v) { return (v === undefined || v === null || Number.isNaN(v)) ? '--' : v.toFixed(0) + ' hPa'; }
 function fmtDist(mm) { return (mm === undefined || mm === null || !mm) ? '--' : (mm / 10).toFixed(1) + ' cm'; }
@@ -132,7 +132,7 @@ function setKnob(key, x, y) {
   j.knob.style.transform = 'translate(calc(-50% + ' + ox + 'px), calc(-50% + ' + oy + 'px))';
   const norm = Math.min(dist / j.radius, 1);
   j.x = ox / j.radius;
-  j.y = -oy / j.radius;
+  j.y = oy / j.radius;
   j.intensity = norm < 0.07 ? 0 : norm;
   if (j.intensity === 0) { j.x = 0; j.y = 0; }
   updateJoyReadout(key);
@@ -141,7 +141,7 @@ function setKnob(key, x, y) {
 
 function joyLabel(x, y, i) {
   if (i < 0.07) return 'Parado';
-  if (Math.abs(y) > Math.abs(x)) return y > 0 ? 'Frente' : 'Trás';
+  if (Math.abs(y) > Math.abs(x)) return y > 0 ? 'Frente' : 'TrÃ¡s';
   return x > 0 ? 'Direita' : 'Esquerda';
 }
 
@@ -234,10 +234,11 @@ async function sendDifferential(left, right, force) {
 
 async function sendDir(dir) {
   const speed = pctToPwm(state.speedPct);
-  if (dir === state.lastSent.dir && speed === state.lastSent.speed && state.lastSent.mode === 'dir') return;
+  const cmd = dir === 'frente' ? 'tras' : dir === 'tras' ? 'frente' : dir;
+  if (cmd === state.lastSent.dir && speed === state.lastSent.speed && state.lastSent.mode === 'dir') return;
   try {
-    await API.post('/api/motor/move', { direction: dir, speed });
-    state.lastSent = { left: 0, right: 0, dir, speed, mode: 'dir' };
+    await API.post('/api/motor/move', { direction: cmd, speed });
+    state.lastSent = { left: 0, right: 0, dir: cmd, speed, mode: 'dir' };
     setOnline(true);
     updateStatusLocal(dir);
   } catch (err) {
@@ -263,7 +264,7 @@ function updateStatusLocal(dir) {
   const mov = $('home-moving');
   if (mov) mov.textContent = label;
   const dlSt = $('dl-tel-status');
-  if (dlSt) dlSt.textContent = ({ frente: 'Frente', tras: 'Trás', esquerda: 'Esquerda', direita: 'Direita', stop: 'Parado' }[dir] || 'Parado');
+  if (dlSt) dlSt.textContent = ({ frente: 'Frente', tras: 'TrÃ¡s', esquerda: 'Esquerda', direita: 'Direita', stop: 'Parado' }[dir] || 'Parado');
 }
 
 async function toggleAuto() {
@@ -295,7 +296,7 @@ function syncAutoButtons() {
 function buildAdviceMessages(s) {
   const a = s.alerts || {};
   const msgs = [];
-  if (a.fire) msgs.push('INCENDIO: temperatura subiu rapido — verifique o ambiente!');
+  if (a.fire) msgs.push('INCENDIO: temperatura subiu rapido â€” verifique o ambiente!');
   if (a.rainSensor) msgs.push('Chuva agora (sensor molhado)');
   else if (a.rain) msgs.push('Pode chover: pressao caiu ' + Math.abs(a.trend3h || 0).toFixed(1) + ' hPa/3h');
   if (a.hot) msgs.push('Calor: ligue o ar-condicionado');
@@ -307,9 +308,9 @@ function buildAdviceMessages(s) {
 function renderTicker(s) {
   const el = $('ticker-text');
   if (!el) return;
-  el.textContent = 'Temp ' + fmtTemp(s.temperature) + '  •  Umid ' + fmtHum(s.humidity) +
-    '  •  Press ' + fmtPres(s.pressure) + '  •  Dist ' + fmtDist(s.distanceMm) +
-    '  •  Autonomo ' + (s.auto ? (s.autoState || 'ON') : 'OFF');
+  el.textContent = 'Temp ' + fmtTemp(s.temperature) + '  â€¢  Umid ' + fmtHum(s.humidity) +
+    '  â€¢  Press ' + fmtPres(s.pressure) + '  â€¢  Dist ' + fmtDist(s.distanceMm) +
+    '  â€¢  Autonomo ' + (s.auto ? (s.autoState || 'ON') : 'OFF');
 }
 
 function alertSeverity(text) {
@@ -390,7 +391,7 @@ async function fetchStatus() {
   try {
     const st = await API.get('/api/motor/status');
     setOnline(true);
-    const dirMap = { 0: 'Parado', 1: 'Frente', 2: 'Trás', 3: 'Esquerda', 4: 'Direita' };
+    const dirMap = { 0: 'Parado', 1: 'Frente', 2: 'TrÃ¡s', 3: 'Esquerda', 4: 'Direita' };
     const dir = dirMap[st.direction] || 'Parado';
     const homeState = $('home-state');
     if (homeState) homeState.textContent = st.moving ? 'Andando' : 'Parado';

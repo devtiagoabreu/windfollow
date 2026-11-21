@@ -73,18 +73,6 @@ static const char* index_html = R"rawliteral(
 
         <!-- Coluna central: comandos e, logo abaixo, sensores + status -->
         <section class="home-col center-col">
-          <div class="card btns-card">
-            <div class="card-title">Botoes de Direcao</div>
-            <div class="dpad">
-              <button class="btn dpad-btn" id="btn-frente" data-dir="frente">&#9650;<span>Frente</span></button>
-              <div class="dpad-row">
-                <button class="btn dpad-btn" id="btn-esquerda" data-dir="esquerda">&#9664;<span>Esquerda</span></button>
-                <button class="btn dpad-btn btn-stop" id="btn-stop">&#9632;<span>Parar</span></button>
-                <button class="btn dpad-btn" id="btn-tras" data-dir="tras">&#9660;<span>Tras</span></button>
-              </div>
-              <button class="btn dpad-btn" id="btn-direita" data-dir="direita">&#9654;<span>Direita</span></button>
-            </div>
-          </div>
 
           <!-- Comandos restantes e leituras ocupam a faixa inferior -->
           <div class="home-bottom">
@@ -369,7 +357,7 @@ body { display: flex; flex-direction: column; }
   gap: calc(var(--u) * 0.2); min-width: 0; flex: 1 1 auto;
 }
 .app-title {
-  margin: 0; font-size: calc(var(--u) * 1.55); font-weight: 800;
+  margin: 0; font-size: calc(var(--u) * 1.35); font-weight: 800;
   letter-spacing: 0.04em; color: #8fd7ff; line-height: 1.05;
 }
 .header-alerts {
@@ -400,7 +388,7 @@ body { display: flex; flex-direction: column; }
 /* Switch de tela cheia */
 .fullscreen-switch, .switch.inline {
   position: relative; display: inline-block; flex: 0 0 auto;
-  width: calc(var(--u) * 6); height: calc(var(--u) * 3.4);
+  width: calc(var(--u) * 5.2); height: calc(var(--u) * 3.0);
 }
 .fullscreen-switch input, .switch.inline input { opacity: 0; width: 0; height: 0; }
 .slider-round {
@@ -409,7 +397,7 @@ body { display: flex; flex-direction: column; }
 }
 .slider-round:before {
   position: absolute; content: "";
-  height: calc(var(--u) * 2.6); width: calc(var(--u) * 2.6);
+  height: calc(var(--u) * 2.2); width: calc(var(--u) * 2.2);
   left: calc(var(--u) * 0.3); bottom: calc(var(--u) * 0.3);
   background: #fff; border-radius: 50%; transition: .2s;
 }
@@ -432,7 +420,7 @@ body { display: flex; flex-direction: column; }
 }
 .tab.active { color: #8fd7ff; border-bottom-color: #2f9fd8; background: #121a2b; }
 
-/* ---------- Painéis ---------- */
+/* ---------- PainÃƒÂ©is ---------- */
 .panel { display: none; flex: 1 1 auto; min-height: 0; overflow: hidden; flex-direction: column; }
 .panel.active { display: flex; }
 
@@ -447,15 +435,16 @@ body { display: flex; flex-direction: column; }
 }
 .home-col { display: grid; gap: var(--gap); min-height: 0; min-width: 0; }
 .joy-col { grid-column: 1; grid-template-rows: minmax(0, 1fr); }
-.center-col { grid-column: 2; grid-template-rows: minmax(0, 1fr) auto; }
+.center-col { grid-column: 2; grid-template-rows: 1fr; }
 .home-bottom {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.15fr);
-  gap: var(--gap); min-height: 0;
+  grid-template-rows: 1fr;
+  gap: var(--gap); min-height: 0; height: 100%;
 }
 .home-bottom .card { min-height: 0; }
 
-/* Cards: sempre preenchem o retângulo disponível */
+/* Cards: sempre preenchem o retÃƒÂ¢ngulo disponÃƒÂ­vel */
 .card {
   background: #121a2b; border: 1px solid #1f2a3d;
   border-radius: var(--radius); padding: var(--pad);
@@ -473,7 +462,7 @@ body { display: flex; flex-direction: column; }
 .joy-wrap { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: calc(var(--u) * 0.8); }
 .joystick-base {
   position: relative;
-  width: min(100%, calc(var(--u) * 22));
+  width: min(100%, calc(var(--u) * 30));
   aspect-ratio: 1 / 1;
   border-radius: 50%; background: #1d2733;
   border: 2px solid #2d3a50; touch-action: none;
@@ -486,12 +475,12 @@ body { display: flex; flex-direction: column; }
 }
 .joystick-knob {
   position: absolute; left: 50%; top: 50%;
-  width: calc(var(--u) * 6); height: calc(var(--u) * 6);
+  width: calc(var(--u) * 7.5); height: calc(var(--u) * 7.5);
   background: #2f9fd8; border-radius: 50%; transform: translate(-50%, -50%);
   border: 2px solid #121a2b; box-shadow: 0 4px 12px rgba(47,159,216,0.35);
   cursor: grab; touch-action: none;
 }
-.joy-readout { display: flex; gap: calc(var(--u) * 1.2); font-size: calc(var(--u) * 1.3); color: #9fb2c6; flex: 0 0 auto; }
+.joy-readout { display: flex; gap: calc(var(--u) * 1.2); font-size: calc(var(--u) * 1.5); color: #9fb2c6; flex: 0 0 auto; }
 
 /* D-pad */
 .dpad {
@@ -528,18 +517,18 @@ body { display: flex; flex-direction: column; }
 .btn-auto.on { background: #1f7a4d; border-color: #2fa76a; color: #eafff3; }
 
 /* Velocidade */
-.speed-row { display: flex; align-items: center; gap: calc(var(--u) * 0.8); flex: 0 0 auto; }
-.speed-label { font-size: calc(var(--u) * 1.25); color: #9fb2c6; width: calc(var(--u) * 5); flex: 0 0 auto; }
-.hslider { -webkit-appearance: none; width: 100%; height: calc(var(--u) * 0.8); border-radius: calc(var(--u) * 0.4); background: #1f2a3d; outline: 0; }
-.hslider::-webkit-slider-thumb { -webkit-appearance: none; width: calc(var(--u) * 2); height: calc(var(--u) * 2); border-radius: 50%; background: #2f9fd8; cursor: pointer; }
-.speed-val { font-size: calc(var(--u) * 1.25); color: #8fd7ff; min-width: calc(var(--u) * 5); text-align: right; flex: 0 0 auto; font-variant-numeric: tabular-nums; }
+.speed-row { display: flex; align-items: center; gap: calc(var(--u) * 0.8); flex: 0 0 auto; min-height: calc(var(--u) * 4.2); }
+.speed-label { font-size: calc(var(--u) * 1.45); color: #9fb2c6; width: calc(var(--u) * 5.5); flex: 0 0 auto; }
+.hslider { -webkit-appearance: none; width: 100%; height: calc(var(--u) * 1.2); border-radius: calc(var(--u) * 0.6); background: #1f2a3d; outline: 0; }
+.hslider::-webkit-slider-thumb { -webkit-appearance: none; width: calc(var(--u) * 2.8); height: calc(var(--u) * 2.8); border-radius: 50%; background: #2f9fd8; cursor: pointer; }
+.speed-val { font-size: calc(var(--u) * 1.45); color: #8fd7ff; min-width: calc(var(--u) * 5.5); text-align: right; flex: 0 0 auto; font-variant-numeric: tabular-nums; }
 
 /* Sensores / status */
 .env-grid { display: grid; grid-template-columns: 1fr 1fr; gap: calc(var(--u) * 0.4) calc(var(--u) * 0.9); }
-.env-item { display: flex; justify-content: space-between; font-size: calc(var(--u) * 1.25); gap: calc(var(--u) * 0.4); }
+.env-item { display: flex; justify-content: space-between; font-size: calc(var(--u) * 1.4); gap: calc(var(--u) * 0.4); }
 .env-k { color: #9fb2c6; }
 .env-v { color: #cfe3f5; font-variant-numeric: tabular-nums; }
-.status-row { display: flex; justify-content: space-between; font-size: calc(var(--u) * 1.25); padding: calc(var(--u) * 0.25) 0; border-bottom: 1px solid #161e2f; gap: calc(var(--u) * 0.4); }
+.status-row { display: flex; justify-content: space-between; font-size: calc(var(--u) * 1.4); padding: calc(var(--u) * 0.35) 0; border-bottom: 1px solid #161e2f; gap: calc(var(--u) * 0.4); }
 .status-row:last-child { border-bottom: 0; }
 .status-k { color: #9fb2c6; }
 .status-v { color: #cfe3f5; text-align: right; }
@@ -556,7 +545,7 @@ body { display: flex; flex-direction: column; }
 .dl-col-left { grid-column: 1; }
 .dl-col-right { grid-column: 2; overflow-y: auto; }
 .dl-col-right .card { flex: 0 0 auto; }
-.dl-col-left .joystick-base { width: min(100%, calc(var(--u) * 17)); }
+.dl-col-left .joystick-base { width: min(100%, calc(var(--u) * 22)); }
 .telemetry {
   position: absolute; bottom: 0; left: 0; right: 0;
   background: #121a2b; border-top: 1px solid #1f2a3d;
@@ -604,23 +593,26 @@ body { display: flex; flex-direction: column; }
 .sys-info { font-size: calc(var(--u) * 1.2); white-space: pre-wrap; color: #9fb2c6; overflow: auto; }
 .sta-row { display: none; }
 
-/* Celulares paisagem baixos (ex.: 844x390): compacta sem perder o retângulo */
+/* Celulares paisagem baixos (ex.: 844x390): compacta sem perder o retÃƒÂ¢ngulo */
 @media screen and (orientation: landscape) and (max-height: 420px) {
-  :root { --u: clamp(5px, min(1vw, 1.9vh), 11px); }
-  .btn { font-size: calc(var(--u) * 1.4); gap: calc(var(--u) * 0.1); }
-  .btn span { font-size: calc(var(--u) * 0.95); }
-  .home-bottom .card { padding: calc(var(--u) * 0.9); gap: calc(var(--u) * 0.4); }
-  .env-grid { gap: calc(var(--u) * 0.2) calc(var(--u) * 0.6); }
-  .speed-row { min-height: calc(var(--u) * 2.4); }
+  :root { --u: clamp(5.5px, min(1.05vw, 2.15vh), 11px); }
+  .app-header { height: calc(var(--u) * 4.8); }
+  .ticker { height: calc(var(--u) * 2.3); }
+  .btn-block { padding: calc(var(--u) * 0.95) calc(var(--u) * 1.2); font-size: calc(var(--u) * 1.45); }
+  .home-bottom .card { padding: calc(var(--u) * 0.8); gap: calc(var(--u) * 0.45); }
+  .speed-row { min-height: calc(var(--u) * 3.6); }
+  .hslider { height: calc(var(--u) * 1.1); }
+  .hslider::-webkit-slider-thumb { width: calc(var(--u) * 2.5); height: calc(var(--u) * 2.5); }
+  .joystick-base { width: min(100%, calc(var(--u) * 24)); }
 }
 
-/* Retrato: mantém tudo escalado e permite rolagem */
+/* Retrato: mantÃƒÂ©m tudo escalado e permite rolagem */
 @media screen and (orientation: portrait) {
   :root { --u: clamp(6px, min(1.8vw, 1.1vh), 12px); }
   .home-grid { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); overflow-y: auto; }
   .joy-col { grid-column: 1; grid-row: 1; }
   .center-col { grid-column: 1; grid-row: 2; }
-  .home-bottom { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .home-bottom { grid-template-columns: 1fr; grid-template-rows: auto auto auto; height: auto; }
 }
 
 .hidden { display: none !important; }
@@ -672,7 +664,7 @@ const joyState = {
 function $(id) { return document.getElementById(id); }
 function pctToPwm(pct) { return Math.round((pct / 100) * 255); }
 function safe(v, d) { return (v === undefined || v === null || Number.isNaN(v)) ? d : v; }
-function fmtTemp(v) { return (v === undefined || v === null || Number.isNaN(v)) ? '--' : v.toFixed(1) + ' °C'; }
+function fmtTemp(v) { return (v === undefined || v === null || Number.isNaN(v)) ? '--' : v.toFixed(1) + ' Â°C'; }
 function fmtHum(v) { return (v === undefined || v === null || Number.isNaN(v)) ? '--' : v.toFixed(0) + ' %'; }
 function fmtPres(v) { return (v === undefined || v === null || Number.isNaN(v)) ? '--' : v.toFixed(0) + ' hPa'; }
 function fmtDist(mm) { return (mm === undefined || mm === null || !mm) ? '--' : (mm / 10).toFixed(1) + ' cm'; }
@@ -761,7 +753,7 @@ function setKnob(key, x, y) {
   j.knob.style.transform = 'translate(calc(-50% + ' + ox + 'px), calc(-50% + ' + oy + 'px))';
   const norm = Math.min(dist / j.radius, 1);
   j.x = ox / j.radius;
-  j.y = -oy / j.radius;
+  j.y = oy / j.radius;
   j.intensity = norm < 0.07 ? 0 : norm;
   if (j.intensity === 0) { j.x = 0; j.y = 0; }
   updateJoyReadout(key);
@@ -770,7 +762,7 @@ function setKnob(key, x, y) {
 
 function joyLabel(x, y, i) {
   if (i < 0.07) return 'Parado';
-  if (Math.abs(y) > Math.abs(x)) return y > 0 ? 'Frente' : 'Trás';
+  if (Math.abs(y) > Math.abs(x)) return y > 0 ? 'Frente' : 'TrÃ¡s';
   return x > 0 ? 'Direita' : 'Esquerda';
 }
 
@@ -863,10 +855,11 @@ async function sendDifferential(left, right, force) {
 
 async function sendDir(dir) {
   const speed = pctToPwm(state.speedPct);
-  if (dir === state.lastSent.dir && speed === state.lastSent.speed && state.lastSent.mode === 'dir') return;
+  const cmd = dir === 'frente' ? 'tras' : dir === 'tras' ? 'frente' : dir;
+  if (cmd === state.lastSent.dir && speed === state.lastSent.speed && state.lastSent.mode === 'dir') return;
   try {
-    await API.post('/api/motor/move', { direction: dir, speed });
-    state.lastSent = { left: 0, right: 0, dir, speed, mode: 'dir' };
+    await API.post('/api/motor/move', { direction: cmd, speed });
+    state.lastSent = { left: 0, right: 0, dir: cmd, speed, mode: 'dir' };
     setOnline(true);
     updateStatusLocal(dir);
   } catch (err) {
@@ -892,7 +885,7 @@ function updateStatusLocal(dir) {
   const mov = $('home-moving');
   if (mov) mov.textContent = label;
   const dlSt = $('dl-tel-status');
-  if (dlSt) dlSt.textContent = ({ frente: 'Frente', tras: 'Trás', esquerda: 'Esquerda', direita: 'Direita', stop: 'Parado' }[dir] || 'Parado');
+  if (dlSt) dlSt.textContent = ({ frente: 'Frente', tras: 'TrÃ¡s', esquerda: 'Esquerda', direita: 'Direita', stop: 'Parado' }[dir] || 'Parado');
 }
 
 async function toggleAuto() {
@@ -924,7 +917,7 @@ function syncAutoButtons() {
 function buildAdviceMessages(s) {
   const a = s.alerts || {};
   const msgs = [];
-  if (a.fire) msgs.push('INCENDIO: temperatura subiu rapido — verifique o ambiente!');
+  if (a.fire) msgs.push('INCENDIO: temperatura subiu rapido â€” verifique o ambiente!');
   if (a.rainSensor) msgs.push('Chuva agora (sensor molhado)');
   else if (a.rain) msgs.push('Pode chover: pressao caiu ' + Math.abs(a.trend3h || 0).toFixed(1) + ' hPa/3h');
   if (a.hot) msgs.push('Calor: ligue o ar-condicionado');
@@ -936,9 +929,9 @@ function buildAdviceMessages(s) {
 function renderTicker(s) {
   const el = $('ticker-text');
   if (!el) return;
-  el.textContent = 'Temp ' + fmtTemp(s.temperature) + '  •  Umid ' + fmtHum(s.humidity) +
-    '  •  Press ' + fmtPres(s.pressure) + '  •  Dist ' + fmtDist(s.distanceMm) +
-    '  •  Autonomo ' + (s.auto ? (s.autoState || 'ON') : 'OFF');
+  el.textContent = 'Temp ' + fmtTemp(s.temperature) + '  â€¢  Umid ' + fmtHum(s.humidity) +
+    '  â€¢  Press ' + fmtPres(s.pressure) + '  â€¢  Dist ' + fmtDist(s.distanceMm) +
+    '  â€¢  Autonomo ' + (s.auto ? (s.autoState || 'ON') : 'OFF');
 }
 
 function alertSeverity(text) {
@@ -1019,7 +1012,7 @@ async function fetchStatus() {
   try {
     const st = await API.get('/api/motor/status');
     setOnline(true);
-    const dirMap = { 0: 'Parado', 1: 'Frente', 2: 'Trás', 3: 'Esquerda', 4: 'Direita' };
+    const dirMap = { 0: 'Parado', 1: 'Frente', 2: 'TrÃ¡s', 3: 'Esquerda', 4: 'Direita' };
     const dir = dirMap[st.direction] || 'Parado';
     const homeState = $('home-state');
     if (homeState) homeState.textContent = st.moving ? 'Andando' : 'Parado';

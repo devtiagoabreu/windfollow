@@ -11,6 +11,28 @@ e soluções, arquivos tocados.
 
 ## Histórico
 
+### 2026-11-20 22:59 - fix(irobot): improve mobile controls and invert front/back
+
+**Area:** irobot
+
+**Feito:**
+- Removed home direction-buttons card to free space on mobile
+- Reduced ticker/header size and enlarged joystick, sliders and command controls for touch
+- Inverted frente/tras behavior in joystick and directional commands
+- Regenerated WebAssets.h, synced preview, and flashed firmware to COM9
+
+**Dificuldades e solucoes:**
+- PowerShell multiline string replacement failed due line endings in app.js -> applied targeted Replace edits and verified key patterns before regenerate/flash
+
+**Arquivos:**
+- `firmware/irobot/WebAssets.h`
+- `firmware/irobot/preview/app.js`
+- `firmware/irobot/preview/index.html`
+- `firmware/irobot/preview/style.css`
+- `firmware/irobot/web/css/style.css`
+- `firmware/irobot/web/index.html`
+- `firmware/irobot/web/js/app.js`
+
 ### 2026-11-20 22:27 - fix(irobot): sync preview simulator with board web UI
 
 **Area:** irobot
