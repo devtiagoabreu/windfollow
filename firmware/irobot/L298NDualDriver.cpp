@@ -35,7 +35,7 @@ bool L298NDualDriver::begin(const RobotConfig& config) {
   return true;
 }
 
-void L298NDualDriver::applyMotor(int8_t in1, int8_t in2, int8_t pwmPin, int8_t speed) {
+void L298NDualDriver::applyMotor(int8_t in1, int8_t in2, int8_t pwmPin, int16_t speed) {
   uint8_t pwm = clampSpeed(speed);
 
   if (speed > 0) {
@@ -52,27 +52,27 @@ void L298NDualDriver::applyMotor(int8_t in1, int8_t in2, int8_t pwmPin, int8_t s
   ledcWrite(pwmPin, pwm);
 }
 
-uint8_t L298NDualDriver::clampSpeed(int8_t speed) const {
-  if (speed >  _config.pwmMax) return _config.pwmMax;
-  if (speed < -_config.pwmMax) return _config.pwmMax;
-  uint8_t absSpeed = abs(speed);
-  if (absSpeed < _config.pwmMin && absSpeed > 0) return _config.pwmMin;
-  return absSpeed;
+uint8_t L298NDualDriver::clampSpeed(int16_t speed) const {
+  int16_t absSpeed = speed >= 0 ? speed : -speed;
+  if (absSpeed == 0) return 0;
+  if (absSpeed < _config.pwmMin) absSpeed = _config.pwmMin;
+  if (absSpeed > _config.pwmMax) absSpeed = _config.pwmMax;
+  return (uint8_t)absSpeed;
 }
 
-void L298NDualDriver::setLeftMotor(int8_t speed) {
+void L298NDualDriver::setLeftMotor(int16_t speed) {
   if (!_initialized) return;
   _leftSpeed = speed;
   applyMotor(_config.gpioLeftIn1, _config.gpioLeftIn2, _config.gpioLeftEna, speed);
 }
 
-void L298NDualDriver::setRightMotor(int8_t speed) {
+void L298NDualDriver::setRightMotor(int16_t speed) {
   if (!_initialized) return;
   _rightSpeed = speed;
   applyMotor(_config.gpioRightIn3, _config.gpioRightIn4, _config.gpioRightEnb, speed);
 }
 
-void L298NDualDriver::setSpeeds(int8_t left, int8_t right) {
+void L298NDualDriver::setSpeeds(int16_t left, int16_t right) {
   setLeftMotor(left);
   setRightMotor(right);
 }

@@ -11,6 +11,32 @@ e soluções, arquivos tocados.
 
 ## Histórico
 
+### 2026-11-20 22:14 - fix(irobot): fix PWM scaling, differential control and replace scan with fixed-sensor avoidance
+
+**Area:** irobot
+
+**Feito:**
+- Changed motor speed types/clamping to int16_t PWM range and fixed /api/motor/move differential handling
+- Web joystick/dir/diff controls now send real PWM, rescale on speed change and avoid stale command dedupe
+- AutoNavigator simplified to fixed VL53L0X obstacle avoidance (forward/backup/turn/settle) without 360 scan
+- Regenerated embedded web assets and flashed COM9
+
+**Dificuldades e solucoes:**
+- Speed/diff bugs likely from percent-scale joystick vs PWM driver and int8_t truncation: widened to int16_t and mapped UI to 0-255 PWM with live resends
+- Removing scan touched API/state strings and required regenerating WebAssets.h from firmware/irobot path before reflash
+
+**Arquivos:**
+- `firmware/irobot/AutoNavigator.cpp`
+- `firmware/irobot/AutoNavigator.h`
+- `firmware/irobot/DashboardService.cpp`
+- `firmware/irobot/HardwareConfig.h`
+- `firmware/irobot/L298NDualDriver.cpp`
+- `firmware/irobot/L298NDualDriver.h`
+- `firmware/irobot/MotorEngine.cpp`
+- `firmware/irobot/MotorEngine.h`
+- `firmware/irobot/WebAssets.h`
+- `firmware/irobot/web/js/app.js`
+
 ### 2026-11-20 20:31 - fix(irobot): lower autonomous speed defaults
 
 **Area:** irobot

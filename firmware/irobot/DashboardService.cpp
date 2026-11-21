@@ -316,6 +316,7 @@ void DashboardService::handleAutoPost() {
     RobotConfig cfg = _configMgr->load();
     cfg.autoSpeed = doc["autoSpeed"].as<uint8_t>();
     _configMgr->save(cfg);
+    if (_autoNav) _autoNav->invalidateSpeedCache();
   }
 
   bool on = _autoNav->enabled();
@@ -404,8 +405,8 @@ bool DashboardService::handleMoveRequest(JsonDocument& doc) {
 
   // Controle diferencial por velocidade individual (opcional)
   if (doc.containsKey("leftSpeed") && doc.containsKey("rightSpeed")) {
-    int8_t left  = doc["leftSpeed"].as<int8_t>();
-    int8_t right = doc["rightSpeed"].as<int8_t>();
+    int16_t left  = doc["leftSpeed"].as<int16_t>();
+    int16_t right = doc["rightSpeed"].as<int16_t>();
     _engine->moveDifferential(left, right);
     return true;
   }

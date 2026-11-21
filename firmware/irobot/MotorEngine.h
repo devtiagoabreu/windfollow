@@ -12,17 +12,17 @@ public:
 
   // Comandos diferenciais do robô
   void move(RobotDirection dir, uint8_t speed = PWM_DEFAULT);
-  void moveDifferential(int8_t leftSpeed, int8_t rightSpeed);
+  void moveDifferential(int16_t leftSpeed, int16_t rightSpeed);
   void stop();
 
   // Controle individual por motor (compatível com API antiga)
-  void setLeft(int8_t speed);
-  void setRight(int8_t speed);
+  void setLeft(int16_t speed);
+  void setRight(int16_t speed);
 
   // Estado atual
   RobotDirection getCurrentDirection() const { return _currentDir; }
-  int8_t getLeftSpeed() const { return _driver ? _driver->getLeftSpeed() : 0; }
-  int8_t getRightSpeed() const { return _driver ? _driver->getRightSpeed() : 0; }
+  int16_t getLeftSpeed() const { return _driver ? _driver->getLeftSpeed() : 0; }
+  int16_t getRightSpeed() const { return _driver ? _driver->getRightSpeed() : 0; }
   bool isMoving() const { return _currentDir != RobotDirection::STOP; }
 
 private:

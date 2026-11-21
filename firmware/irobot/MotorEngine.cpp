@@ -14,26 +14,27 @@ void MotorEngine::move(RobotDirection dir, uint8_t speed) {
   _currentDir = dir;
   _currentSpeed = speed;
 
-  int8_t left  = 0;
-  int8_t right = 0;
+  int16_t s = speed;
+  int16_t left  = 0;
+  int16_t right = 0;
 
   switch (dir) {
     case RobotDirection::FRENTE:
-      left  = speed;
-      right = speed;
+      left  = s;
+      right = s;
       break;
     case RobotDirection::TRAS:
-      left  = -static_cast<int8_t>(speed);
-      right = -static_cast<int8_t>(speed);
+      left  = -s;
+      right = -s;
       break;
     case RobotDirection::ESQUERDA:
       // Gira para a esquerda: direito frente, esquerdo parado
       left  = 0;
-      right = speed;
+      right = s;
       break;
     case RobotDirection::DIREITA:
       // Gira para a direita: esquerdo frente, direito parado
-      left  = speed;
+      left  = s;
       right = 0;
       break;
     case RobotDirection::STOP:
@@ -46,7 +47,7 @@ void MotorEngine::move(RobotDirection dir, uint8_t speed) {
   _driver->setSpeeds(left, right);
 }
 
-void MotorEngine::moveDifferential(int8_t leftSpeed, int8_t rightSpeed) {
+void MotorEngine::moveDifferential(int16_t leftSpeed, int16_t rightSpeed) {
   if (!_driver) return;
 
   // Mantem o estado coerente para a telemetria, inclusive no pivo
@@ -62,7 +63,9 @@ void MotorEngine::moveDifferential(int8_t leftSpeed, int8_t rightSpeed) {
   } else {
     _currentDir = RobotDirection::DIREITA;
   }
-  _currentSpeed = max(abs(leftSpeed), abs(rightSpeed));
+  int16_t al = leftSpeed >= 0 ? leftSpeed : -leftSpeed;
+  int16_t ar = rightSpeed >= 0 ? rightSpeed : -rightSpeed;
+  _currentSpeed = (uint8_t)(al > ar ? al : ar);
 
   _driver->setSpeeds(leftSpeed, rightSpeed);
 }
@@ -71,12 +74,12 @@ void MotorEngine::stop() {
   move(RobotDirection::STOP, 0);
 }
 
-void MotorEngine::setLeft(int8_t speed) {
+void MotorEngine::setLeft(int16_t speed) {
   if (!_driver) return;
   _driver->setLeftMotor(speed);
 }
 
-void MotorEngine::setRight(int8_t speed) {
+void MotorEngine::setRight(int16_t speed) {
   if (!_driver) return;
   _driver->setRightMotor(speed);
 }
