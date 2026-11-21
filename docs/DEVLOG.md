@@ -11,6 +11,20 @@ e soluções, arquivos tocados.
 
 ## Histórico
 
+### 2026-11-20 23:15 - fix(irobot): invert autonomous front/back direction
+
+**Area:** irobot
+
+**Feito:**
+- Swapped autonomous forward and backup motor directions in AutoNavigator to match inverted manual controls
+- Compiled and flashed firmware to COM9
+
+**Dificuldades e solucoes:**
+- Autonomous navigation used semantic FRENTE/TRAS independently of web-side inversion -> swapped directions in startForward and startBackup
+
+**Arquivos:**
+- `firmware/irobot/AutoNavigator.cpp`
+
 ### 2026-11-20 22:59 - fix(irobot): improve mobile controls and invert front/back
 
 **Area:** irobot

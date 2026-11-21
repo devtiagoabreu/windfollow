@@ -54,13 +54,13 @@ bool AutoNavigator::clearAhead() const {
 
 void AutoNavigator::startForward() {
   _forwardSince = millis();
-  _engine->move(RobotDirection::FRENTE, autoMoveSpeed());
+  _engine->move(RobotDirection::TRAS, autoMoveSpeed());
   enter(State::FORWARD);
 }
 
 void AutoNavigator::startBackup(uint16_t ms) {
   _backupMs = ms;
-  _engine->move(RobotDirection::TRAS, autoMoveSpeed());
+  _engine->move(RobotDirection::FRENTE, autoMoveSpeed());
   enter(State::BACKUP);
 }
 
