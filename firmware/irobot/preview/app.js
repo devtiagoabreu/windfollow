@@ -22,6 +22,7 @@ const API = {
 const state = {
   powerOn: true,
   speedPct: 70,
+  autoSpeed: 140,
   leftPct: 0,
   rightPct: 0,
   autoOn: false,
@@ -30,7 +31,7 @@ const state = {
   online: false,
   activeTab: 'home',
   joystick: { base: null, knob: null, cx: 0, cy: 0, radius: 0, knobRadius: 22, active: false, touchId: null, x: 0, y: 0, intensity: 0 },
-  lastSent: { left: 0, right: 0, dir: '', speed: 0 }
+  lastSent: { left: 0, right: 0, dir: '', speed: 0, mode: '' }
 };
 
 const joyState = {
@@ -150,23 +151,27 @@ function updateJoyReadout(key) {
   if (j.intEl) j.intEl.textContent = 'Int: ' + Math.round(j.intensity * 100) + '%';
 }
 
-function resetJoystick(key) {
+function resetJoystick(key, sendStop) {
   const j = joyState[key];
   if (j.knob) j.knob.style.transform = 'translate(-50%, -50%)';
   j.x = 0; j.y = 0; j.intensity = 0; j.active = false; j.touchId = null;
   updateJoyReadout(key);
-  sendDifferential(0, 0);
+  if (sendStop !== false) sendDifferential(0, 0);
 }
 
 function sendJoystick(key) {
   if (!state.powerOn) return;
   const j = joyState[key];
-  const scale = state.speedPct / 100;
-  let left = j.y * j.intensity - j.x * j.intensity;
-  let right = j.y * j.intensity + j.x * j.intensity;
+  if (!j.active) return;
+  const maxPwm = pctToPwm(state.speedPct);
+  let left = j.y - j.x;
+  let right = j.y + j.x;
+  const mag = Math.max(Math.abs(left), Math.abs(right), 1);
+  left = (left / mag) * j.intensity;
+  right = (right / mag) * j.intensity;
   left = Math.max(-1, Math.min(1, left));
   right = Math.max(-1, Math.min(1, right));
-  sendDifferential(Math.round(left * 100 * scale), Math.round(right * 100 * scale));
+  sendDifferential(Math.round(left * maxPwm), Math.round(right * maxPwm));
 }
 
 function bindJoystick(key, baseId, knobId, dirId, intId) {
@@ -214,11 +219,13 @@ function bindJoystick(key, baseId, knobId, dirId, intId) {
 }
 
 // -------------------- comandos --------------------
-async function sendDifferential(left, right) {
-  if (left === state.lastSent.left && right === state.lastSent.right) return;
+async function sendDifferential(left, right, force) {
+  left = Math.max(-255, Math.min(255, Math.round(left)));
+  right = Math.max(-255, Math.min(255, Math.round(right)));
+  if (!force && left === state.lastSent.left && right === state.lastSent.right && state.lastSent.mode === 'diff') return;
   try {
     await API.post('/api/motor/move', { leftSpeed: left, rightSpeed: right });
-    state.lastSent = { left, right, dir: '', speed: 0 };
+    state.lastSent = { left, right, dir: '', speed: 0, mode: 'diff' };
     setOnline(true);
   } catch (err) {
     setOnline(false);
@@ -227,9 +234,10 @@ async function sendDifferential(left, right) {
 
 async function sendDir(dir) {
   const speed = pctToPwm(state.speedPct);
+  if (dir === state.lastSent.dir && speed === state.lastSent.speed && state.lastSent.mode === 'dir') return;
   try {
     await API.post('/api/motor/move', { direction: dir, speed });
-    state.lastSent = { left: 0, right: 0, dir, speed };
+    state.lastSent = { left: 0, right: 0, dir, speed, mode: 'dir' };
     setOnline(true);
     updateStatusLocal(dir);
   } catch (err) {
@@ -244,7 +252,7 @@ async function stopAll() {
   } catch (err) {
     setOnline(false);
   }
-  state.lastSent = { left: 0, right: 0, dir: '', speed: 0 };
+  state.lastSent = { left: 0, right: 0, dir: 'stop', speed: 0, mode: 'stop' };
   updateStatusLocal('stop');
 }
 
@@ -341,7 +349,7 @@ function renderDlSensors(s, msgs) {
   if (s.tof) present.push('VL53L0X');
   const st = $('dl-env-status');
   if (st) st.textContent = (present.length ? 'sensores: ' + present.join(', ') : 'sensores: nenhum') +
-    (s.auto ? ' | autonomo: ' + s.autoState + ' (' + safe(s.avoidCount, 0) + '/100)' : '');
+    (s.auto ? ' | autonomo: ' + s.autoState : '');
   const list = $('dl-advice-list');
   if (list) {
     if (!msgs.length) list.innerHTML = '<li class="advice-none">Nenhum aviso no momento</li>';
@@ -361,6 +369,7 @@ async function fetchSensors() {
     setOnline(true);
     state.autoOn = s.auto === true;
     syncAutoButtons();
+    if (s.autoSpeed !== undefined) setAutoSpeedUI(s.autoSpeed);
     const msgs = buildAdviceMessages(s);
     renderTicker(s);
     renderHeaderAlerts(msgs);
@@ -422,13 +431,25 @@ function notifyStuck() {
 }
 
 // -------------------- config --------------------
+function setAutoSpeedUI(v) {
+  const val = Math.max(60, Math.min(255, parseInt(v) || 140));
+  state.autoSpeed = val;
+  ['home-auto-speed', 'dl-auto-speed', 'cfg-auto-speed', 'dl-auto-speed-cfg'].forEach(id => {
+    const el = $(id); if (el) el.value = val;
+  });
+  ['home-auto-speed-val', 'dl-auto-speed-val'].forEach(id => {
+    const el = $(id); if (el) el.textContent = val;
+  });
+}
+
 async function loadConfig() {
   try {
     const cfg = await API.get('/api/config');
     state.config = cfg;
-    const set = (id, v) => { const el = $(id); if (el) el.value = v; };
+    const set = (id, v) => { const el = $(id); if (el && v !== undefined && v !== null) el.value = v; };
     set('cfg-pwm-min', cfg.pwmMin); set('cfg-pwm-max', cfg.pwmMax); set('cfg-pwm-default', cfg.pwmDefault);
     set('dl-pwm-min', cfg.pwmMin); set('dl-pwm-max', cfg.pwmMax); set('dl-pwm-default', cfg.pwmDefault);
+    setAutoSpeedUI(cfg.autoSpeed !== undefined ? cfg.autoSpeed : 140);
     const mot = cfg.motorsEnabled === true || cfg.motorsEnabled === 1 || cfg.motorsEnabled === 'true';
     if ($('cfg-motors-enabled')) $('cfg-motors-enabled').checked = mot;
     if ($('dl-motors-enabled')) $('dl-motors-enabled').checked = mot;
@@ -438,10 +459,12 @@ async function loadConfig() {
 
 async function saveConfig(prefix) {
   const get = id => { const el = $(id); return el ? el.value : undefined; };
+  const autoSpeedId = prefix === 'dl' ? 'dl-auto-speed-cfg' : 'cfg-auto-speed';
   const payload = {
     pwmMin: parseInt(get(prefix + '-pwm-min')) || 0,
     pwmMax: parseInt(get(prefix + '-pwm-max')) || 255,
     pwmDefault: parseInt(get(prefix + '-pwm-default')) || 150,
+    autoSpeed: parseInt(get(autoSpeedId)) || state.autoSpeed || 140,
     motorsEnabled: $(prefix + '-motors-enabled') ? $(prefix + '-motors-enabled').checked : true
   };
   try { await API.post('/api/config', payload); setOnline(true); await loadConfig(); }
@@ -516,8 +539,8 @@ function init() {
     btn.addEventListener('click', e => {
       e.preventDefault();
       const dir = btn.getAttribute('data-dir');
-      const key = btn.id.startsWith('dl-') ? 'dl' : 'home';
-      resetJoystick(key);
+      resetJoystick('home', false);
+      resetJoystick('dl', false);
       sendDir(dir);
       document.querySelectorAll('.dpad-btn').forEach(b => b.classList.toggle('active', b === btn));
       setTimeout(() => btn.classList.remove('active'), 200);
@@ -540,10 +563,30 @@ function init() {
       state.speedPct = parseInt(sl.value) || 0;
       document.querySelectorAll('#home-speed, #dl-speed').forEach(s => { if (s) s.value = state.speedPct; });
       document.querySelectorAll('#home-speed-val, #dl-speed-val').forEach(s => { if (s) s.textContent = state.speedPct + '%'; });
+      if (joyState.home.active) sendJoystick('home');
+      if (joyState.dl.active) sendJoystick('dl');
+      if (state.lastSent.mode === 'dir' && state.lastSent.dir && state.lastSent.dir !== 'stop') sendDir(state.lastSent.dir);
     });
   };
   bindSpeed('home-speed', 'home-speed-val');
   bindSpeed('dl-speed', 'dl-speed-val');
+
+  const bindAutoSpeed = (sliderId, valId) => {
+    const sl = $(sliderId), vv = $(valId);
+    if (!sl) return;
+    sl.addEventListener('input', () => {
+      const v = parseInt(sl.value) || 140;
+      if (vv) vv.textContent = v;
+    });
+    sl.addEventListener('change', async () => {
+      const v = parseInt(sl.value) || 140;
+      setAutoSpeedUI(v);
+      try { await API.post('/api/auto', { autoSpeed: v }); setOnline(true); }
+      catch (err) { setOnline(false); }
+    });
+  };
+  bindAutoSpeed('home-auto-speed', 'home-auto-speed-val');
+  bindAutoSpeed('dl-auto-speed', 'dl-auto-speed-val');
 
   const bindDiffSlider = (id, valId, which) => {
     const sl = $(id), vv = $(valId);
@@ -557,7 +600,10 @@ function init() {
   bindDiffSlider('dl-left', 'dl-left-val', 'leftPct');
   bindDiffSlider('dl-right', 'dl-right-val', 'rightPct');
   const apply = $('dl-apply-diff');
-  if (apply) apply.addEventListener('click', () => sendDifferential(state.leftPct, state.rightPct));
+  if (apply) apply.addEventListener('click', () => {
+    const scale = state.speedPct / 100;
+    sendDifferential(Math.round(state.leftPct * 2.55 * scale), Math.round(state.rightPct * 2.55 * scale), true);
+  });
 
   const savePwm = $('cfg-save-pwm'); if (savePwm) savePwm.addEventListener('click', () => saveConfig('cfg'));
   const saveDl = $('dl-save-config'); if (saveDl) saveDl.addEventListener('click', () => saveConfig('dl'));
@@ -599,3 +645,4 @@ function init() {
 }
 
 document.addEventListener('DOMContentLoaded', init);
+

@@ -11,6 +11,23 @@ e soluções, arquivos tocados.
 
 ## Histórico
 
+### 2026-11-20 22:27 - fix(irobot): sync preview simulator with board web UI
+
+**Area:** irobot
+
+**Feito:**
+- Synced firmware/irobot/preview index and app from current board web UI including auto-speed controls, PWM differential fixes and simplified auto states
+- Preserved preview-only banner, relative asset paths and mock.js loading
+- Updated preview mock to support /api/auto and autoSpeed state
+
+**Dificuldades e solucoes:**
+- Preview had diverged from flashed board UI (stale joystick/PWM scaling and missing auto-speed features) -> mirrored board files then reapplied preview-specific paths/banner/mock hooks
+
+**Arquivos:**
+- `firmware/irobot/preview/app.js`
+- `firmware/irobot/preview/index.html`
+- `firmware/irobot/preview/mock.js`
+
 ### 2026-11-20 22:14 - fix(irobot): fix PWM scaling, differential control and replace scan with fixed-sensor avoidance
 
 **Area:** irobot

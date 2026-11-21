@@ -17,6 +17,7 @@
       aht: true, bmp: true, tof: true,
       auto: false,
       autoState: 'OFF',
+      autoSpeed: 140,
       avoidCount: 0,
       stuck: scenario.stuck,
       stuckSeq: scenario.stuck ? 1 : 0,
@@ -41,8 +42,17 @@
     '/api/config': {
       pwmMin: 60,
       pwmMax: 255,
-      pwmDefault: 150,
+      pwmDefault: 179,
+      autoSpeed: 140,
       motorsEnabled: true
+    },
+    '/api/auto': {
+      enabled: false,
+      state: 'off',
+      stuck: scenario.stuck,
+      stuckSeq: scenario.stuck ? 1 : 0,
+      avoidCount: 0,
+      autoSpeed: 140
     },
     '/api/system/info': {
       preview: true,
@@ -65,30 +75,53 @@
     };
   }
 
+  function syncAuto() {
+    const a = mock['/api/auto'];
+    const s = mock['/api/sensors'];
+    s.auto = a.enabled;
+    s.autoState = a.enabled ? (a.state && a.state !== 'off' ? a.state : 'frente') : 'off';
+    s.autoSpeed = a.autoSpeed;
+  }
+
   const originalFetch = window.fetch.bind(window);
   window.fetch = function (input, opts) {
     const url = String(input);
     const path = url.split('?')[0];
     if (Object.prototype.hasOwnProperty.call(mock, path)) {
-      const data = mock[path];
-      if (opts && opts.method && opts.method.toUpperCase() === 'POST' && path !== '/api/system/info') {
-        if (path === '/api/config' && opts.body) Object.assign(mock['/api/config'], JSON.parse(opts.body));
-        if (path === '/api/wifi' && opts.body) Object.assign(mock['/api/wifi'], JSON.parse(opts.body));
-        if (path === '/api/motor/move' && opts.body) {
-          const b = JSON.parse(opts.body);
+      if (opts && opts.method && opts.method.toUpperCase() === 'POST') {
+        let b = {};
+        try { b = opts.body ? JSON.parse(opts.body) : {}; } catch (e) {}
+        if (path === '/api/config') {
+          Object.assign(mock['/api/config'], b);
+          if (b.autoSpeed !== undefined) { mock['/api/auto'].autoSpeed = b.autoSpeed; mock['/api/sensors'].autoSpeed = b.autoSpeed; }
+        } else if (path === '/api/wifi') {
+          Object.assign(mock['/api/wifi'], b);
+        } else if (path === '/api/motor/move') {
+          const moving = !((b.direction === 'stop') || (b.leftSpeed === 0 && b.rightSpeed === 0 && b.direction === undefined));
           mock['/api/motor/status'] = {
-            direction: b.direction ? 1 : 0,
-            leftSpeed: b.leftSpeed || b.speed || 0,
-            rightSpeed: b.rightSpeed || b.speed || 0,
-            moving: true
+            direction: b.direction ? ({frente:1,tras:2,esquerda:3,direita:4,stop:0}[b.direction]||0) : 0,
+            leftSpeed: b.leftSpeed !== undefined ? b.leftSpeed : (b.speed || 0),
+            rightSpeed: b.rightSpeed !== undefined ? b.rightSpeed : (b.speed || 0),
+            moving: moving
           };
-        }
-        if (path === '/api/motor/stop') {
+        } else if (path === '/api/motor/stop') {
           mock['/api/motor/status'] = { direction: 0, leftSpeed: 0, rightSpeed: 0, moving: false };
+        } else if (path === '/api/auto') {
+          if (b.enabled !== undefined) mock['/api/auto'].enabled = !!b.enabled;
+          if (b.autoSpeed !== undefined) {
+            mock['/api/auto'].autoSpeed = b.autoSpeed;
+            mock['/api/config'].autoSpeed = b.autoSpeed;
+            mock['/api/sensors'].autoSpeed = b.autoSpeed;
+          }
+          syncAuto();
+          return respond(Object.assign({ ok: true }, mock['/api/auto']), 200);
+        } else if (path === '/api/system/restart') {
+          return respond({ ok: true }, 200);
         }
         return respond({ ok: true }, 200);
       }
-      return respond(data, 200);
+      syncAuto();
+      return respond(mock[path], 200);
     }
     return originalFetch(input, opts);
   };
