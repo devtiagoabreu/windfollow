@@ -1567,7 +1567,7 @@ static const char* favicon_svg = R"rawliteral(
 
 )rawliteral";
 static const char* sw_js = R"rawliteral(
-const CACHE = 'irobot-v7';
+const CACHE = 'irobot-v8';
 const ASSETS = [
   '/', '/style.css', '/app.js', '/manifest.json', '/teste',
   '/favicon.svg', '/favicon.png', '/icon-192.png', '/icon-512.png'

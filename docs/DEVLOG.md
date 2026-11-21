@@ -11,6 +11,22 @@ e soluções, arquivos tocados.
 
 ## Histórico
 
+### 2026-11-20 23:44 - fix(irobot): bump service worker cache to force UI reload
+
+**Area:** irobot
+
+**Feito:**
+- Bumped irobot service worker cache from v7 to v8 in web and preview
+- Regenerated embedded WebAssets.h and reflashed firmware to COM9
+
+**Dificuldades e solucoes:**
+- Reflash verified app binary already matched (sectors unchanged) so UI issue likely stale PWA/browser cache -> bumped SW cache version and flashed updated assets
+
+**Arquivos:**
+- `firmware/irobot/WebAssets.h`
+- `firmware/irobot/preview/sw.js`
+- `firmware/irobot/web/sw.js`
+
 ### 2026-11-20 23:35 - fix(irobot): invert left/right in joystick and autonomous mode
 
 **Area:** irobot
